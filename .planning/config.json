@@ -1,0 +1,35 @@
+{
+  "mode": "autonomous",
+  "granularity": "standard",
+  "model_profile": "adaptive",
+  "commit_docs": true,
+  "parallelization": false,
+  "branching_strategy": "none",
+  "workflow": {
+    "research": true,
+    "plan_check": true,
+    "verifier": true,
+    "auto_advance": false,
+    "nyquist_validation": true,
+    "pattern_mapper": true,
+    "ui_phase": true,
+    "ui_safety_gate": true,
+    "ai_integration_phase": true,
+    "tdd_mode": false,
+    "code_review": true,
+    "code_review_depth": "standard",
+    "ui_review": true,
+    "skip_discuss": false,
+    "use_worktrees": false
+  },
+  "plan_review": {
+    "source_grounding": true
+  },
+  "intel": {
+    "enabled": false
+  },
+  "graphify": {
+    "enabled": false,
+    "auto_update": false
+  }
+}
