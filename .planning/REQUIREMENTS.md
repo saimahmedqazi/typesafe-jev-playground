@@ -12,7 +12,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **EXEC-01**: Explicit Execution Mode abstraction distinguishing LLM Practice Mode and Native Jev Mode with clear semantic boundaries.
 - [x] **EXEC-02**: BYO Key architecture with ephemeral client-side credential handling (memory only, never persisted to disk/DB, sent via headers).
 - [x] **EXEC-03**: Zero hidden cost fallback (maintainer credentials are never used as fallback for public/user requests).
-- [ ] **EXEC-04**: Rate limiting, request size limits, and fixed provider endpoint allowlisting to prevent abuse and SSRF.
+- [x] **EXEC-04**: Rate limiting, request size limits, and fixed provider endpoint allowlisting to prevent abuse and SSRF.
 
 ### JEV Domain Model & Primitives (DOMAIN)
 
@@ -36,9 +36,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Server API & Runtime Validation (API)
 
-- [ ] **API-01**: Strongly typed `/api/evaluate` endpoint validating requests with Zod schemas.
-- [ ] **API-02**: Server-side runtime validation of external LLM responses against expected question output schemas.
-- [ ] **API-03**: Structured error model with standardized machine-readable error codes and zero credential/stack trace leakage.
+- [x] **API-01**: Strongly typed `/api/evaluate` endpoint validating requests with Zod schemas.
+- [x] **API-02**: Server-side runtime validation of external LLM responses against expected question output schemas.
+- [x] **API-03**: Structured error model with standardized machine-readable error codes and zero credential/stack trace leakage.
 
 ### Workbench Frontend & State Workspace (UI)
 
@@ -91,7 +91,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | EXEC-01 | Phase 1 | Complete |
 | EXEC-02 | Phase 1 | Complete |
 | EXEC-03 | Phase 1 | Complete |
-| EXEC-04 | Phase 4 | Pending |
+| EXEC-04 | Phase 4 | Complete |
 | DOMAIN-01 | Phase 1 | Complete |
 | DOMAIN-02 | Phase 1 | Complete |
 | DOMAIN-03 | Phase 1 | Complete |
@@ -103,9 +103,9 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ADAPT-02 | Phase 3 | Complete |
 | ADAPT-03 | Phase 3 | Complete |
 | ADAPT-04 | Phase 5 | Pending |
-| API-01 | Phase 4 | Pending |
-| API-02 | Phase 4 | Pending |
-| API-03 | Phase 4 | Pending |
+| API-01 | Phase 4 | Complete |
+| API-02 | Phase 4 | Complete |
+| API-03 | Phase 4 | Complete |
 | UI-01 | Phase 6 | Pending |
 | UI-02 | Phase 6 | Pending |
 | UI-03 | Phase 6 | Pending |

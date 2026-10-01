@@ -81,8 +81,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 04-01: Server evaluation pipeline, Zod request/response validation, and sanitized error taxonomy
-- [ ] 04-02: Abuse protection middleware (rate limiting, payload limits, SSRF endpoint restrictions)
+- [x] 04-01: Server evaluation pipeline, Zod request/response validation, and sanitized error taxonomy
+- [x] 04-02: Abuse protection middleware (rate limiting, payload limits, SSRF endpoint restrictions)
 
 ### Phase 5: Native Jev Adapter Integration
 **Goal**: Integrate Native Jev execution adapter using direct credentials and actual Jev execution routing.
@@ -154,7 +154,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Foundation, Execution Modes & Domain Models | 2/2 | Complete | 2026-10-01 |
 | 2. Question Registry & Initial Primitives | 2/2 | Complete | 2026-10-01 |
 | 3. Execution Adapters & Multi-Provider LLM Engine | 2/2 | Complete | 2026-10-01 |
-| 4. Server Evaluation Pipeline, Validation & Security | 0/2 | Not started | - |
+| 4. Server Evaluation Pipeline, Validation & Security | 2/2 | Complete | 2026-10-01 |
 | 5. Native Jev Adapter Integration | 0/1 | Not started | - |
 | 6. Developer Workbench UI & State Editor | 0/3 | Not started | - |
 | 7. Local Experiment History & Workflow Polish | 0/1 | Not started | - |
