@@ -29,6 +29,12 @@ export function buildEvaluationPrompt(question: AtomicQuestion, state: unknown):
           'Question Primitive: NOUL (Categorical / Truth-Value Judgment)',
           'Expected Output: A boolean `value` (true or false), a numeric `confidence` score (0.0 to 1.0), and a concise `rationale`.',
         ].join('\n')
+      : question.type === 'choice'
+      ? [
+          'Question Primitive: CHOICE (Categorical Selection from Alternatives)',
+          `Available Choices: ${(question as any).choices && (question as any).choices.length > 0 ? (question as any).choices.map((c: string) => `"${c}"`).join(', ') : 'None specified'}`,
+          'Expected Output: A string `value` matching one of the available choices, a `probabilities` object mapping each alternative choice to its probability (0.0 to 1.0, summing to ~1.0), a numeric `confidence` score (0.0 to 1.0), and a concise `rationale`.',
+        ].join('\n')
       : [
           'Question Primitive: SCORE (Continuous Normalized Metric)',
           'Expected Output: A continuous numeric `value` strictly within [0.0, 1.0], an optional `criteria_breakdown` mapping factor names to sub-scores, and a concise `rationale`.',

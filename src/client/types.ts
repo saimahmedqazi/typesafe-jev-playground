@@ -17,7 +17,8 @@ export interface ClientQuestion {
   name: string;
   type: QuestionPrimitiveType;
   description: string;
-  expectedReturnType: 'boolean' | 'number';
+  expectedReturnType: 'boolean' | 'number' | 'string';
+  choices?: string[];
   defaultState?: Record<string, unknown>;
   presets: ClientPreset[];
 }

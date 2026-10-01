@@ -8,7 +8,7 @@ import { HistoryDrawer } from './components/HistoryDrawer';
 import { SettingsModal } from './components/SettingsModal';
 import { WalkthroughModal, WALKTHROUGH_STORAGE_KEY } from './components/WalkthroughModal';
 import { ClientQuestion, ClientPreset, WorkbenchConfig, WorkbenchHealth } from './types';
-import { EvaluationResponse, ErrorDetails, EvaluationErrorCode } from '../core';
+import { EvaluationResponse, ErrorDetails, EvaluationErrorCode, QuestionPrimitiveType } from '../core';
 import { PROVIDER_DEFAULT_MODELS } from '../adapters/types';
 import {
   ExperimentRecord,
@@ -26,7 +26,11 @@ export default function App() {
 
   // 2. Questions & Presets catalog
   const [questions, setQuestions] = useState<ClientQuestion[]>([]);
+  const [activePrimitive, setActivePrimitive] = useState<QuestionPrimitiveType>('noul');
   const [activeQuestion, setActiveQuestion] = useState<ClientQuestion | null>(null);
+  const [isCustomQuestion, setIsCustomQuestion] = useState<boolean>(false);
+  const [customQuestionText, setCustomQuestionText] = useState<string>('Is this item a sandwich based on its attributes?');
+  const [choices, setChoices] = useState<string[]>(['Sandwich', 'Salad', 'Soup', 'Pastry', 'Beverage', 'Entree']);
 
   // 3. Configuration State (held in memory only)
   const [config, setConfig] = useState<WorkbenchConfig>({
@@ -100,8 +104,12 @@ export default function App() {
           if (data.questions.length > 0) {
             const first = data.questions[0];
             setActiveQuestion(first);
+            setActivePrimitive(first.type);
             if (first.defaultState) {
               setStateJson(JSON.stringify(first.defaultState, null, 2));
+            }
+            if (first.choices && first.choices.length > 0) {
+              setChoices(first.choices);
             }
           }
         }
@@ -116,11 +124,39 @@ export default function App() {
     setHistoryRecords(loadExperimentHistory());
   }, []);
 
+  // Switch Primitive handler
+  const handleSelectPrimitive = (prim: QuestionPrimitiveType) => {
+    setActivePrimitive(prim);
+    const matching = questions.find((q) => q.type === prim);
+    if (matching) {
+      setActiveQuestion(matching);
+      if (matching.defaultState) {
+        setStateJson(JSON.stringify(matching.defaultState, null, 2));
+      }
+      if (matching.choices && matching.choices.length > 0) {
+        setChoices(matching.choices);
+      }
+    }
+    if (prim === 'noul') {
+      setCustomQuestionText('Is this item a sandwich based on its structural attributes?');
+    } else if (prim === 'score') {
+      setCustomQuestionText('Rate the compositional quality and freshness on a continuous scale from 0.0 to 1.0.');
+    } else {
+      setCustomQuestionText('Categorize which culinary category this food item belongs to.');
+    }
+    setEvaluationResponse(null);
+    setEvaluationError(null);
+  };
+
   // Update question selection
   const handleSelectQuestion = (q: ClientQuestion) => {
     setActiveQuestion(q);
+    setActivePrimitive(q.type);
     if (q.defaultState) {
       setStateJson(JSON.stringify(q.defaultState, null, 2));
+    }
+    if (q.choices && q.choices.length > 0) {
+      setChoices(q.choices);
     }
     setEvaluationResponse(null);
     setEvaluationError(null);
@@ -192,11 +228,16 @@ export default function App() {
       }
     }
 
+    const targetQuestionId = isCustomQuestion ? 'custom_question' : (activeQuestion?.id || 'custom_question');
+    const targetQuestionName = isCustomQuestion ? (customQuestionText.slice(0, 30) + '...') : (activeQuestion?.name || 'Custom');
+
     const payload = {
       mode: config.mode,
-      questionId: activeQuestion.id,
-      questionType: activeQuestion.type,
+      questionId: targetQuestionId,
+      questionType: activePrimitive,
       state: parsedState,
+      choices: activePrimitive === 'choice' ? choices : undefined,
+      customQuestionText: isCustomQuestion ? customQuestionText : undefined,
       modelConfig:
         config.mode === 'llm-practice'
           ? {
@@ -222,9 +263,9 @@ export default function App() {
         // Record experiment in local history (without credentials)
         saveExperimentRecord({
           mode: config.mode,
-          questionId: activeQuestion.id,
-          questionName: activeQuestion.name,
-          questionType: activeQuestion.type,
+          questionId: targetQuestionId,
+          questionName: targetQuestionName,
+          questionType: activePrimitive,
           state: parsedState,
           modelConfig:
             config.mode === 'llm-practice'
@@ -257,7 +298,7 @@ export default function App() {
     } finally {
       setIsEvaluating(false);
     }
-  }, [activeQuestion, config, stateJson]);
+  }, [activeQuestion, isCustomQuestion, customQuestionText, activePrimitive, choices, config, stateJson]);
 
   // Load a historical experiment record back into workbench
   const handleLoadExperiment = (record: ExperimentRecord) => {
@@ -395,8 +436,16 @@ export default function App() {
           <div className="lg:col-span-5">
             <WorkspacePanel
               questions={questions}
+              activePrimitive={activePrimitive}
+              onSelectPrimitive={handleSelectPrimitive}
               activeQuestion={activeQuestion}
               onSelectQuestion={handleSelectQuestion}
+              isCustomQuestion={isCustomQuestion}
+              onToggleCustomQuestion={setIsCustomQuestion}
+              customQuestionText={customQuestionText}
+              onChangeCustomQuestionText={setCustomQuestionText}
+              choices={choices}
+              onChangeChoices={setChoices}
               stateJson={stateJson}
               onChangeStateJson={setStateJson}
               onFormatJson={handleFormatJson}
@@ -405,7 +454,7 @@ export default function App() {
               onRunEvaluation={handleRunEvaluation}
               isEvaluating={isEvaluating}
               canRun={Boolean(
-                activeQuestion &&
+                (isCustomQuestion ? customQuestionText.trim().length > 0 : activeQuestion) &&
                   (config.mode === 'llm-practice' ? config.llmApiKey : config.nativeJevKey)
               )}
             />

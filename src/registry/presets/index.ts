@@ -132,6 +132,66 @@ export const STATE_PRESETS: StatePreset[] = [
       balance_ratio: 0.2,
     },
   },
+
+  // Presets for classify_food (Choice)
+  {
+    id: 'caesar-wrap-state',
+    name: 'Grilled Chicken Wrap',
+    description: 'Tortilla rolled tightly around grilled chicken, parmesan, and crisp greens.',
+    questionId: 'classify_food',
+    state: {
+      item: 'Grilled Chicken Wrap',
+      enclosure: 'flour tortilla roll',
+      filling: 'grilled chicken, crisp romaine, parmesan',
+      dressing: 'caesar dressing',
+      temperature: 'chilled',
+      handheld: true,
+    },
+  },
+  {
+    id: 'minestrone-soup-state',
+    name: 'Hearty Minestrone',
+    description: 'Vegetables and ditalini pasta simmered in rich tomato broth.',
+    questionId: 'classify_food',
+    state: {
+      item: 'Classic Minestrone',
+      consistency: 'broth and simmered vegetables',
+      container: 'porcelain bowl',
+      ingredients: ['cannellini beans', 'carrots', 'celery', 'ditalini pasta', 'vegetable broth'],
+      temperature: 'steaming hot',
+      utensil: 'soup spoon',
+      handheld: false,
+    },
+  },
+  {
+    id: 'butter-croissant-state',
+    name: 'French Butter Croissant',
+    description: 'Laminated flaky pastry dough baked to golden perfection.',
+    questionId: 'classify_food',
+    state: {
+      item: 'Artisanal Croissant',
+      dough: 'laminated yeast dough with layered butter',
+      baking_method: 'convection oven baked',
+      texture: 'crisp flaky crust with airy honeycomb interior',
+      flavor: 'buttery and subtly sweet',
+      handheld: true,
+    },
+  },
+  {
+    id: 'greek-salad-state',
+    name: 'Kalamata Greek Salad',
+    description: 'Cucumbers, tomatoes, kalamata olives, and feta cheese tossed with olive oil.',
+    questionId: 'classify_food',
+    state: {
+      item: 'Mediterranean Greek Salad',
+      base: 'chopped cucumbers, vine tomatoes, red onion',
+      cheese: 'block of aged feta cheese',
+      dressing: 'extra virgin olive oil and oregano',
+      liquid_volume_ml: 20,
+      utensil: 'salad fork',
+      handheld: false,
+    },
+  },
 ];
 
 export function getPresetsForQuestion(questionId: string): StatePreset[] {

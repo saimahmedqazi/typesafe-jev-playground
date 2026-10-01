@@ -61,6 +61,37 @@ export function getBaseJsonSchema(question: AtomicQuestion): Record<string, unkn
     };
   }
 
+  if (question.type === 'choice') {
+    const choices = (question as any).choices as string[] | undefined;
+    return {
+      type: 'object',
+      properties: {
+        value: {
+          type: 'string',
+          description: `The selected categorical alternative${choices && choices.length > 0 ? `, strictly one of: ${choices.map((c) => `"${c}"`).join(', ')}` : ''}.`,
+          ...(choices && choices.length > 0 ? { enum: choices } : {}),
+        },
+        probabilities: {
+          type: 'object',
+          description: 'Normalized probability distribution across all alternative choices (values between 0.0 and 1.0, summing to ~1.0).',
+          additionalProperties: {
+            type: 'number',
+          },
+        },
+        confidence: {
+          type: 'number',
+          description: 'Confidence in this choice from 0.0 to 1.0.',
+        },
+        rationale: {
+          type: 'string',
+          description: 'Precise evidence-based rationale justifying the selected choice.',
+        },
+      },
+      required: ['value', 'confidence', 'rationale'],
+      additionalProperties: false,
+    };
+  }
+
   // Score primitive
   return {
     type: 'object',
@@ -143,6 +174,27 @@ export function getGeminiSchema(question: AtomicQuestion): GeminiSchemaDefinitio
         rationale: {
           type: 'STRING',
           description: 'Clear rationale explaining the judgment.',
+        },
+      },
+      required: ['value', 'rationale'],
+    };
+  }
+
+  if (question.type === 'choice') {
+    return {
+      type: 'OBJECT',
+      properties: {
+        value: {
+          type: 'STRING',
+          description: 'Selected categorical choice.',
+        },
+        confidence: {
+          type: 'NUMBER',
+          description: 'Confidence score from 0.0 to 1.0.',
+        },
+        rationale: {
+          type: 'STRING',
+          description: 'Clear rationale explaining the choice.',
         },
       },
       required: ['value', 'rationale'],

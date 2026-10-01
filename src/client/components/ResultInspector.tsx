@@ -260,6 +260,67 @@ export function ResultInspector({ isEvaluating, response, error }: ResultInspect
                 </div>
               )}
 
+              {response.result.type === 'choice' && (
+                <div className="p-4 rounded-xl bg-gray-950/80 border border-gray-800 flex flex-col space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-400">Choice Classification</span>
+                    {response.result.confidence !== undefined && (
+                      <span className="text-[11px] font-mono text-gray-300">
+                        Confidence: {(response.result.confidence * 100).toFixed(0)}%
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <div className="px-4 py-2 rounded-lg font-mono font-bold text-base tracking-wider bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center space-x-2">
+                      <Layers className="w-5 h-5 text-purple-400" />
+                      <span>{response.result.value}</span>
+                    </div>
+                    <p className="text-xs text-gray-300 font-medium">
+                      Categorized as {response.result.value}
+                    </p>
+                  </div>
+
+                  {/* Probability Distribution Breakdown */}
+                  {response.result.probabilities && Object.keys(response.result.probabilities).length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-gray-800/80">
+                      <div className="flex items-center justify-between text-[11px] text-gray-400">
+                        <span>Probability Distribution</span>
+                        <span>Estimated Likelihood</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {Object.entries(response.result.probabilities)
+                          .sort(([, a], [, b]) => b - a)
+                          .map(([choice, prob]) => {
+                            const isSelected = choice.toLowerCase() === String(response.result.value).toLowerCase();
+                            const pct = Math.round(prob * 100);
+                            return (
+                              <div key={choice} className="space-y-1">
+                                <div className="flex items-center justify-between text-[11px] font-mono">
+                                  <span className={isSelected ? 'text-purple-300 font-bold' : 'text-gray-400'}>
+                                    {choice}
+                                  </span>
+                                  <span className={isSelected ? 'text-purple-300 font-bold' : 'text-gray-500'}>
+                                    {pct}%
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full transition-all duration-500 ${
+                                      isSelected ? 'bg-purple-500' : 'bg-gray-700'
+                                    }`}
+                                    style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Rationale / Explanation Box */}
               {response.result.explanation && (
                 <div className="p-3.5 rounded-xl bg-gray-950/60 border border-gray-800/80 space-y-2 text-xs">

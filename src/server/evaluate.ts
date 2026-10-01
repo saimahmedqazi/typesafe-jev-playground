@@ -36,7 +36,7 @@ export function createEvaluationHandlers(options?: {
       });
     }
 
-    const { mode, questionId, questionType, state, modelConfig } = parseResult.data;
+    const { mode, questionId, questionType, state, modelConfig, choices, customQuestionText } = parseResult.data;
 
     // 2. Extract Ephemeral User Credentials
     const userCredentials = extractEphemeralCredentials(req.headers);
@@ -68,8 +68,22 @@ export function createEvaluationHandlers(options?: {
       }
     }
 
-    // 4. Resolve Question from Registry
-    const question = defaultQuestionRegistry.get(questionId);
+    // 4. Resolve Question from Registry or Dynamic Custom Question
+    let question = defaultQuestionRegistry.get(questionId);
+    if (!question && (questionId === 'custom_question' || customQuestionText)) {
+      const primitiveType = questionType || 'noul';
+      question = {
+        id: questionId || 'custom_question',
+        type: primitiveType,
+        name: 'Custom Evaluation Question',
+        description: customQuestionText || 'Custom user question',
+        expectedReturnType: primitiveType === 'noul' ? 'boolean' : primitiveType === 'score' ? 'number' : 'string',
+        promptInstruction: customQuestionText || 'Evaluate state against atomic criteria.',
+        choices: choices || [],
+        validateState: () => ({ valid: true }),
+      } as any;
+    }
+
     if (!question) {
       return res.status(404).json({
         success: false,
@@ -88,6 +102,8 @@ export function createEvaluationHandlers(options?: {
       questionType,
       state,
       modelConfig,
+      choices,
+      customQuestionText,
     };
 
     // 6. Execute Evaluation Adapter
@@ -132,6 +148,7 @@ export function createEvaluationHandlers(options?: {
       description: q.description,
       expectedReturnType: q.expectedReturnType,
       defaultState: q.defaultState,
+      choices: (q as any).choices,
       presets: STATE_PRESETS.filter((p) => p.questionId === q.id),
     }));
 

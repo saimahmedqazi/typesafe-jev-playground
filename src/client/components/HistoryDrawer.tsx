@@ -144,10 +144,23 @@ export function HistoryDrawer({
                           </span>
                         )}
                       </div>
+                    ) : record.result.type === 'choice' ? (
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                          {record.result.value}
+                        </span>
+                        {record.result.confidence !== undefined && (
+                          <span className="text-[10px] text-gray-400 font-mono">
+                            ({(record.result.confidence * 100).toFixed(0)}%)
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <div className="flex items-baseline space-x-1.5 font-mono">
                         <span className="text-sm font-bold text-white">
-                          {record.result.value.toFixed(3)}
+                          {typeof (record.result as any).value === 'number'
+                            ? (record.result as any).value.toFixed(3)
+                            : String((record.result as any).value)}
                         </span>
                         <span className="text-[10px] text-gray-400">/ 1.000</span>
                       </div>

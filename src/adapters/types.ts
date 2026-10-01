@@ -29,7 +29,7 @@ export const PROVIDER_ENDPOINTS = {
  * Recommended default models per provider for cost-effective JEV practice.
  */
 export const PROVIDER_DEFAULT_MODELS: Record<LLMProvider, string> = {
-  groq: 'llama-3.3-70b-versatile',
+  groq: 'qwen/qwen3.8-27b',
   openai: 'gpt-4o-mini',
   anthropic: 'claude-3-5-haiku-20241022',
   gemini: 'gemini-1.5-flash',
@@ -41,10 +41,11 @@ export const PROVIDER_DEFAULT_MODELS: Record<LLMProvider, string> = {
  */
 export const SUPPORTED_MODELS: Record<LLMProvider, ModelOption[]> = {
   groq: [
-    { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B Versatile', description: 'Flagship Meta open-weights model on Groq LPU inference' },
-    { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant', description: 'Ultra low-latency fast evaluation model' },
-    { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B 32k', description: 'High-speed MoE model on Groq' },
-    { id: 'gemma2-9b-it', name: 'Gemma 2 9B IT', description: 'Google Gemma 2 hosted on Groq' },
+    { id: 'qwen/qwen3.8-27b', name: 'Qwen 3.8 27B', description: 'Ultra-fast low-latency reasoning on Groq LPU' },
+    { id: 'openai/gpt-oss-120b', name: 'GPT OSS 120B', description: 'Deep analytical high-parameter reasoning on Groq' },
+    { id: 'openai/gpt-oss-20b', name: 'GPT OSS 20B', description: 'Fast cost-effective evaluation on Groq' },
+    { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B Versatile', description: 'Flagship Meta open-weights model on Groq' },
+    { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant', description: 'Meta 8B instant evaluation model' },
   ],
   openai: [
     { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Fast, cost-effective reasoning for rapid atomic evaluations' },

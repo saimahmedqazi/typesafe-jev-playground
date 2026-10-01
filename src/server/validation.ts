@@ -13,14 +13,16 @@ export const EvaluateRequestBodySchema = z.object({
     errorMap: () => ({ message: "Mode must be either 'llm-practice' or 'native-jev'" }),
   }),
   questionId: z.string().min(1, 'Question ID cannot be empty'),
-  questionType: z.enum(['noul', 'score'], {
-    errorMap: () => ({ message: "Question type must be 'noul' or 'score'" }),
+  questionType: z.enum(['noul', 'score', 'choice'], {
+    errorMap: () => ({ message: "Question type must be 'noul', 'score', or 'choice'" }),
   }),
   state: z
     .record(z.unknown())
     .refine((val) => val !== null && typeof val === 'object' && !Array.isArray(val), {
       message: 'State must be a non-null, non-array JSON object',
     }),
+  choices: z.array(z.string()).optional(),
+  customQuestionText: z.string().optional(),
   modelConfig: z
     .object({
       provider: z.string().min(1, 'Provider cannot be empty'),
@@ -92,6 +94,24 @@ export function validateEvaluationResult(question: AtomicQuestion, result: unkno
         `Score value ${raw.value} is out of the required [0.0, 1.0] range`,
         422,
         { value: raw.value }
+      );
+    }
+  } else if (question.type === 'choice') {
+    if (typeof raw.value !== 'string' || !raw.value.trim()) {
+      throw new JevEvaluationError(
+        EvaluationErrorCode.RESULT_VALIDATION_FAILED,
+        `Choice evaluation value must be a non-empty string, received: ${typeof raw.value}`,
+        422,
+        { value: raw.value }
+      );
+    }
+
+    if (raw.confidence !== undefined && (typeof raw.confidence !== 'number' || raw.confidence < 0 || raw.confidence > 1)) {
+      throw new JevEvaluationError(
+        EvaluationErrorCode.RESULT_VALIDATION_FAILED,
+        'Choice confidence score must be a number between 0.0 and 1.0',
+        422,
+        { confidence: raw.confidence }
       );
     }
   }

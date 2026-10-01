@@ -17,7 +17,7 @@ export type JsonArray = JsonValue[];
 
 export type State = Record<string, unknown>;
 
-export type QuestionPrimitiveType = 'noul' | 'score';
+export type QuestionPrimitiveType = 'noul' | 'score' | 'choice';
 
 /**
  * Noul Result: Represents a categorical or truth-value judgment (boolean).
@@ -42,7 +42,20 @@ export interface ScoreResult {
   rawOutput?: unknown;
 }
 
-export type JevResult = NoulResult | ScoreResult;
+/**
+ * Choice Result: Represents a selection from a predefined set of alternatives with probability distribution.
+ */
+export interface ChoiceResult {
+  type: 'choice';
+  value: string;
+  choices: string[];
+  probabilities?: Record<string, number>;
+  confidence?: number;
+  explanation?: string;
+  rawOutput?: unknown;
+}
+
+export type JevResult = NoulResult | ScoreResult | ChoiceResult;
 
 /**
  * State Validation Result produced when validating state against a question.
@@ -60,7 +73,7 @@ export interface BaseQuestionDefinition {
   type: QuestionPrimitiveType;
   name: string;
   description: string;
-  expectedReturnType: 'boolean' | 'number';
+  expectedReturnType: 'boolean' | 'number' | 'string';
   promptInstruction: string;
   defaultState?: State;
   validateState(state: unknown): StateValidationResult;
@@ -77,7 +90,16 @@ export interface ScoreQuestionDefinition extends BaseQuestionDefinition {
   scoreRange?: [number, number];
 }
 
-export type AtomicQuestion = NoulQuestionDefinition | ScoreQuestionDefinition;
+export interface ChoiceQuestionDefinition extends BaseQuestionDefinition {
+  type: 'choice';
+  expectedReturnType: 'string';
+  choices: string[];
+}
+
+export type AtomicQuestion =
+  | NoulQuestionDefinition
+  | ScoreQuestionDefinition
+  | ChoiceQuestionDefinition;
 
 /**
  * Model Configuration for LLM Practice execution.
@@ -99,6 +121,8 @@ export interface EvaluationContext {
   questionType: QuestionPrimitiveType;
   state: State;
   modelConfig?: ModelConfig;
+  choices?: string[];
+  customQuestionText?: string;
 }
 
 /**

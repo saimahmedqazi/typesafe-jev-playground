@@ -16,6 +16,7 @@ import {
   LLMUserCredentials,
   NoulResult,
   ScoreResult,
+  ChoiceResult,
   UserCredentials,
 } from '../core';
 import { defaultQuestionRegistry } from '../registry';
@@ -74,8 +75,27 @@ export class LLMExecutionAdapter implements ExecutionAdapter {
         );
       }
 
-      // 3. Resolve Atomic Question from Registry
-      const question = this.registry.get(context.questionId);
+      // 3. Resolve Atomic Question from Registry or Dynamic Custom Question
+      let question = this.registry.get(context.questionId);
+      if (!question && (context.questionId === 'custom_question' || context.customQuestionText)) {
+        const primitiveType = context.questionType || 'noul';
+        question = {
+          id: context.questionId || 'custom_question',
+          type: primitiveType,
+          name: 'Custom Evaluation Question',
+          description: context.customQuestionText || 'Custom user-specified atomic question',
+          expectedReturnType: primitiveType === 'noul' ? 'boolean' : primitiveType === 'score' ? 'number' : 'string',
+          promptInstruction: context.customQuestionText || 'Evaluate the target state against the question criteria.',
+          choices: context.choices || [],
+          validateState: (state: unknown) => {
+            if (!state || typeof state !== 'object' || Array.isArray(state)) {
+              return { valid: false, errors: ['State must be a non-null JSON object'] };
+            }
+            return { valid: true };
+          },
+        } as any;
+      }
+
       if (!question) {
         throw new JevEvaluationError(
           EvaluationErrorCode.UNKNOWN_QUESTION,
@@ -261,6 +281,48 @@ export class LLMExecutionAdapter implements ExecutionAdapter {
         rawOutput: raw,
       };
       return noulResult;
+    }
+
+    if (question.type === 'choice') {
+      const allowedChoices = (question as any).choices as string[] | undefined;
+      let selectedValue = typeof rawObj.value === 'string' ? rawObj.value.trim() : String(rawObj.value ?? '');
+
+      // Case-insensitive or partial fallback to allowed choices
+      if (allowedChoices && allowedChoices.length > 0) {
+        const exact = allowedChoices.find((c) => c.toLowerCase() === selectedValue.toLowerCase());
+        if (exact) {
+          selectedValue = exact;
+        } else {
+          const partial = allowedChoices.find((c) => selectedValue.toLowerCase().includes(c.toLowerCase()));
+          selectedValue = partial || allowedChoices[0];
+        }
+      }
+
+      // Parse probability distribution if available
+      let probabilities: Record<string, number> | undefined;
+      if (rawObj.probabilities && typeof rawObj.probabilities === 'object') {
+        probabilities = {};
+        for (const [k, v] of Object.entries(rawObj.probabilities as Record<string, unknown>)) {
+          const p = typeof v === 'number' ? v : Number(v);
+          if (!isNaN(p)) {
+            probabilities[k] = Math.max(0, Math.min(1, p));
+          }
+        }
+      }
+
+      const confidence = typeof rawObj.confidence === 'number' ? Math.max(0, Math.min(1, rawObj.confidence)) : undefined;
+      const explanation = typeof rawObj.rationale === 'string' ? rawObj.rationale : undefined;
+
+      const choiceResult: ChoiceResult = {
+        type: 'choice',
+        value: selectedValue,
+        choices: allowedChoices && allowedChoices.length > 0 ? allowedChoices : [selectedValue],
+        probabilities,
+        confidence,
+        explanation,
+        rawOutput: raw,
+      };
+      return choiceResult;
     }
 
     // Score Primitive
