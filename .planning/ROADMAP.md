@@ -31,7 +31,7 @@ TypeSafe Jev Playground is an evaluation workbench for JEV logic enabling develo
   2. Execution mode abstraction clearly differentiates `llm-practice` and `native-jev` without false equivalence claims.
   3. Ephemeral credential handling interface ensures client-held secrets are never written to disk, database, or logs.
   4. Project builds cleanly with strict TypeScript compiler options (`noImplicitAny`, strict null checks).
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 01-01: Project scaffolding, monorepo/package layout, build configuration, and base typing setup
