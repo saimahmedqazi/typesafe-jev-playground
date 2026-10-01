@@ -162,10 +162,30 @@ describe('Server End-to-End API Integration', () => {
       expect(res.body.error.code).toBe('INVALID_STATE');
     });
 
-    it('returns 501 UNSUPPORTED_MODE for native-jev when key is provided before phase 5', async () => {
+    it('successfully evaluates via Native Jev mode when native credentials are provided', async () => {
+      const mockFetch = vi.fn().mockImplementation((url: string) => {
+        if (url.includes('jev.ai')) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({
+              result: {
+                type: 'noul',
+                value: true,
+                confidence: 0.99,
+                explanation: 'Native Jev runtime execution verified.',
+              },
+            }),
+          });
+        }
+        return Promise.reject(new Error(`Unexpected fetch URL: ${url}`));
+      });
+      vi.stubGlobal('fetch', mockFetch);
+
       const res = await request(app)
         .post('/api/evaluate')
-        .set('x-user-jev-key', 'jev-valid-key')
+        .set('x-user-jev-key', 'jev-valid-test-key')
+        .set('x-user-jev-org', 'org-test-team')
         .send({
           mode: 'native-jev',
           questionId: 'is_sandwich',
@@ -173,9 +193,27 @@ describe('Server End-to-End API Integration', () => {
           state: validSandwichState,
         });
 
-      expect(res.status).toBe(501);
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.result.type).toBe('noul');
+      expect(res.body.result.value).toBe(true);
+      expect(res.body.metadata.mode).toBe('native-jev');
+    });
+
+    it('rejects native-jev mode with 401 MISSING_CREDENTIAL when key is omitted', async () => {
+      const res = await request(app)
+        .post('/api/evaluate')
+        .send({
+          mode: 'native-jev',
+          questionId: 'is_sandwich',
+          questionType: 'noul',
+          state: validSandwichState,
+        });
+
+      expect(res.status).toBe(401);
       expect(res.body.success).toBe(false);
-      expect(res.body.error.code).toBe('UNSUPPORTED_MODE');
+      expect(res.body.error.code).toBe('MISSING_CREDENTIAL');
+      expect(res.body.error.message).toContain('LLM Practice Mode');
     });
   });
 

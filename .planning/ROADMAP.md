@@ -96,7 +96,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 05-01: Native Jev execution adapter contract, credential routing, and fallback handling
+- [x] 05-01: Native Jev execution adapter contract, credential routing, and fallback handling
 
 ### Phase 6: Developer Workbench UI & State Editor
 **Goal**: Deliver a responsive 3-column developer workbench UI with JSON state editor, question runner, and result inspector.
@@ -155,7 +155,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 2. Question Registry & Initial Primitives | 2/2 | Complete | 2026-10-01 |
 | 3. Execution Adapters & Multi-Provider LLM Engine | 2/2 | Complete | 2026-10-01 |
 | 4. Server Evaluation Pipeline, Validation & Security | 2/2 | Complete | 2026-10-01 |
-| 5. Native Jev Adapter Integration | 0/1 | Not started | - |
+| 5. Native Jev Adapter Integration | 1/1 | Complete | 2026-10-01 |
 | 6. Developer Workbench UI & State Editor | 0/3 | Not started | - |
 | 7. Local Experiment History & Workflow Polish | 0/1 | Not started | - |
 | 8. Comprehensive Verification & Security Testing | 0/2 | Not started | - |

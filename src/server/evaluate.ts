@@ -10,12 +10,16 @@ import { Request, Response } from 'express';
 import { EvaluationContext, EvaluationErrorCode, JevEvaluationError } from '../core';
 import { defaultQuestionRegistry } from '../registry';
 import { STATE_PRESETS } from '../registry/presets';
-import { LLMExecutionAdapter } from '../adapters';
+import { LLMExecutionAdapter, NativeJevExecutionAdapter } from '../adapters';
 import { EvaluateRequestBodySchema, validateEvaluationResult } from './validation';
 import { extractEphemeralCredentials } from './credentials';
 
-export function createEvaluationHandlers(options?: { adapter?: LLMExecutionAdapter }) {
+export function createEvaluationHandlers(options?: {
+  adapter?: LLMExecutionAdapter;
+  nativeAdapter?: NativeJevExecutionAdapter;
+}) {
   const llmAdapter = options?.adapter ?? new LLMExecutionAdapter();
+  const nativeAdapter = options?.nativeAdapter ?? new NativeJevExecutionAdapter();
 
   async function handleEvaluateRequest(req: Request, res: Response) {
     // 1. Validate Request Body with Zod
@@ -57,21 +61,11 @@ export function createEvaluationHandlers(options?: { adapter?: LLMExecutionAdapt
           success: false,
           error: {
             code: EvaluationErrorCode.MISSING_CREDENTIAL,
-            message: 'Missing required Jev API key. Provide your native credentials via the x-user-jev-key header.',
+            message: 'Missing required Native Jev API key. To execute in Native Jev Mode, provide your Jev API key via the x-user-jev-key header, or switch to LLM Practice Mode to practice without a Jev license.',
             statusCode: 401,
           },
         });
       }
-
-      // Native Jev adapter is wired in Phase 5
-      return res.status(501).json({
-        success: false,
-        error: {
-          code: EvaluationErrorCode.UNSUPPORTED_MODE,
-          message: 'Native Jev execution adapter will be integrated in Phase 5. Use LLM Practice Mode for now.',
-          statusCode: 501,
-        },
-      });
     }
 
     // 4. Resolve Question from Registry
@@ -97,7 +91,9 @@ export function createEvaluationHandlers(options?: { adapter?: LLMExecutionAdapt
     };
 
     // 6. Execute Evaluation Adapter
-    const response = await llmAdapter.execute(context, userCredentials);
+    const response = mode === 'native-jev'
+      ? await nativeAdapter.execute(context, userCredentials)
+      : await llmAdapter.execute(context, userCredentials);
 
     // 7. Validate Evaluation Result Schema if Success
     if (response.success) {
