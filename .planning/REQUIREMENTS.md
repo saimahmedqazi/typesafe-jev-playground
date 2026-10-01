@@ -113,9 +113,9 @@ Which phases cover which requirements. Populated during roadmap creation.
 | UI-05 | Phase 6 | Complete |
 | HIST-01 | Phase 7 | Complete |
 | HIST-02 | Phase 7 | Complete |
-| TEST-01 | Phase 8 | Pending |
-| TEST-02 | Phase 8 | Pending |
-| TEST-03 | Phase 8 | Pending |
+| TEST-01 | Phase 8 | Complete |
+| TEST-02 | Phase 8 | Complete |
+| TEST-03 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 28 total
