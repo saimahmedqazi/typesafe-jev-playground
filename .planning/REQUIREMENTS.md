@@ -111,8 +111,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | UI-03 | Phase 6 | Complete |
 | UI-04 | Phase 6 | Complete |
 | UI-05 | Phase 6 | Complete |
-| HIST-01 | Phase 7 | Pending |
-| HIST-02 | Phase 7 | Pending |
+| HIST-01 | Phase 7 | Complete |
+| HIST-02 | Phase 7 | Complete |
 | TEST-01 | Phase 8 | Pending |
 | TEST-02 | Phase 8 | Pending |
 | TEST-03 | Phase 8 | Pending |

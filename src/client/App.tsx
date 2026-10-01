@@ -4,9 +4,17 @@ import { Header } from './components/Header';
 import { ConfigPanel } from './components/ConfigPanel';
 import { WorkspacePanel } from './components/WorkspacePanel';
 import { ResultInspector } from './components/ResultInspector';
+import { HistoryDrawer } from './components/HistoryDrawer';
 import { ClientQuestion, ClientPreset, WorkbenchConfig, WorkbenchHealth } from './types';
 import { EvaluationResponse, ErrorDetails, EvaluationErrorCode } from '../core';
 import { PROVIDER_DEFAULT_MODELS } from '../adapters/types';
+import {
+  ExperimentRecord,
+  loadExperimentHistory,
+  saveExperimentRecord,
+  deleteExperimentRecord,
+  clearExperimentHistory,
+} from './history';
 
 export default function App() {
   // 1. Health & API status
@@ -36,6 +44,10 @@ export default function App() {
   const [isEvaluating, setIsEvaluating] = useState<boolean>(false);
   const [evaluationResponse, setEvaluationResponse] = useState<EvaluationResponse | null>(null);
   const [evaluationError, setEvaluationError] = useState<ErrorDetails | null>(null);
+
+  // 6. Local Experiment History state
+  const [historyRecords, setHistoryRecords] = useState<ExperimentRecord[]>([]);
+  const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
 
   // Poll health status on mount
   useEffect(() => {
@@ -76,6 +88,11 @@ export default function App() {
       .catch((err) => {
         console.error('Failed to load questions:', err);
       });
+  }, []);
+
+  // Load experiment history on mount
+  useEffect(() => {
+    setHistoryRecords(loadExperimentHistory());
   }, []);
 
   // Update question selection
@@ -174,12 +191,35 @@ export default function App() {
       const data = await res.json();
       if (res.ok && data.success) {
         setEvaluationResponse(data);
-      } else {
-        setEvaluationError(data.error || {
-          code: EvaluationErrorCode.INTERNAL_ERROR,
-          message: data.message || `Evaluation returned HTTP ${res.status}`,
-          statusCode: res.status,
+
+        // Record experiment in local history (without credentials)
+        saveExperimentRecord({
+          mode: config.mode,
+          questionId: activeQuestion.id,
+          questionName: activeQuestion.name,
+          questionType: activeQuestion.type,
+          state: parsedState,
+          modelConfig:
+            config.mode === 'llm-practice'
+              ? {
+                  provider: config.provider,
+                  model: config.model,
+                  temperature: config.temperature,
+                }
+              : undefined,
+          result: data.result,
+          metadata: data.metadata,
         });
+
+        setHistoryRecords(loadExperimentHistory());
+      } else {
+        setEvaluationError(
+          data.error || {
+            code: EvaluationErrorCode.INTERNAL_ERROR,
+            message: data.message || `Evaluation returned HTTP ${res.status}`,
+            statusCode: res.status,
+          }
+        );
       }
     } catch (err) {
       setEvaluationError({
@@ -191,6 +231,53 @@ export default function App() {
       setIsEvaluating(false);
     }
   }, [activeQuestion, isEvaluating, stateJson, config]);
+
+  // Load a historical experiment back into the workbench
+  const handleLoadExperiment = (record: ExperimentRecord) => {
+    setConfig((prev) => ({
+      ...prev,
+      mode: record.mode,
+      ...(record.modelConfig
+        ? {
+            provider: record.modelConfig.provider as any,
+            model: record.modelConfig.model,
+            temperature: record.modelConfig.temperature ?? prev.temperature,
+          }
+        : {}),
+    }));
+
+    const matchingQ = questions.find((q) => q.id === record.questionId);
+    if (matchingQ) {
+      setActiveQuestion(matchingQ);
+    }
+
+    setStateJson(JSON.stringify(record.state, null, 2));
+
+    // Show previous result immediately
+    setEvaluationResponse({
+      success: true,
+      result: record.result,
+      metadata: {
+        ...record.metadata,
+        mode: record.mode,
+        timestamp: record.timestamp,
+      },
+    });
+
+    setIsHistoryOpen(false);
+  };
+
+  // Delete an individual record
+  const handleDeleteRecord = (id: string) => {
+    deleteExperimentRecord(id);
+    setHistoryRecords(loadExperimentHistory());
+  };
+
+  // Clear all history
+  const handleClearHistory = () => {
+    clearExperimentHistory();
+    setHistoryRecords([]);
+  };
 
   // Keyboard shortcut listener (Ctrl+Enter or Cmd+Enter)
   useEffect(() => {
@@ -208,7 +295,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#090d16] text-gray-200 flex flex-col font-sans">
       {/* Top Navigation */}
-      <Header health={health} loadingHealth={loadingHealth} healthError={healthError} />
+      <Header
+        health={health}
+        loadingHealth={loadingHealth}
+        healthError={healthError}
+        historyCount={historyRecords.length}
+        onOpenHistory={() => setIsHistoryOpen(true)}
+      />
 
       {/* Main Container */}
       <main className="flex-1 max-w-[1600px] w-full mx-auto px-6 py-6 flex flex-col space-y-5">
@@ -251,7 +344,7 @@ export default function App() {
               isEvaluating={isEvaluating}
               canRun={Boolean(
                 activeQuestion &&
-                (config.mode === 'llm-practice' ? config.llmApiKey : config.nativeJevKey)
+                  (config.mode === 'llm-practice' ? config.llmApiKey : config.nativeJevKey)
               )}
             />
           </div>
@@ -266,6 +359,16 @@ export default function App() {
           </div>
         </section>
       </main>
+
+      {/* History Slide-over Drawer */}
+      <HistoryDrawer
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        records={historyRecords}
+        onLoadRecord={handleLoadExperiment}
+        onDeleteRecord={handleDeleteRecord}
+        onClearHistory={handleClearHistory}
+      />
 
       {/* Footer */}
       <footer className="border-t border-gray-800 bg-[#0d121f] px-6 py-3 text-center text-xs text-gray-500 flex items-center justify-between">
