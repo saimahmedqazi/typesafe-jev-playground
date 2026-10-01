@@ -112,7 +112,7 @@ export function WalkthroughModal({ isOpen, onClose, onOpenSettings }: Walkthroug
                   <span>LLM Practice Mode</span>
                 </span>
                 <p className="text-[11px] text-gray-400 leading-relaxed">
-                  Use your own API key (Groq, OpenAI, Anthropic, Gemini, or custom OpenAI-compatible endpoint) to practice JEV logic without needing an official Jev account or license.
+                  Use your own LLM API key (Groq, OpenAI, Anthropic, Gemini, or Ollama) to practice JEV concepts. This is an educational practice layer, not the official Jev runtime.
                 </p>
               </div>
 

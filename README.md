@@ -1,7 +1,7 @@
 # TypeSafe Jev Playground ⚡
 
 > **The Free, Open-Source Developer Experimentation Workbench for [TypeSafe AI](https://typesafe.ai) (JEV).**  
-> Learn, practice, and prototype JEV evaluation concepts (State, Atomic Questions, Noul, Score, Choice) using your own LLM API key (Groq, OpenAI, Anthropic, Gemini, or local Ollama) or connect directly to native Jev infrastructure.
+> Learn, practice, and prototype JEV evaluation concepts (State, Atomic Questions, Noul, Score, Choice) using standard LLM API keys (Groq, OpenAI, Anthropic, Gemini, or local Ollama), or connect native Jev credentials.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.0-61dafb.svg)](https://react.dev/)
@@ -14,19 +14,44 @@
 
 ---
 
+> ⚠️ **CRITICAL ARCHITECTURAL & SEMANTIC NOTICE**  
+> **This project provides an LLM-powered practice environment to learn, prototype, and experiment with JEV concepts — IT IS NOT THE ACTUAL JEV RUNTIME.**  
+>  
+> • **LLM Practice Mode (Default)**: Uses standard commodity LLMs (such as Groq's `qwen/qwen3.8-27b`, OpenAI, Anthropic, or local Ollama) as the underlying reasoning engine to emulate JEV evaluation workflows. It is built specifically so developers who do not have official Jev access can practice JEV concepts for free using API keys they already own. **It does NOT run TypeSafe AI's proprietary model weights or official hosted infrastructure.**  
+> • **Native Jev Mode**: Provided for developers who hold authorized/official native Jev API credentials to execute directly against authentic TypeSafe AI Jev infrastructure.  
+>  
+> This workbench makes **zero false equivalence claims** between general-purpose LLM prompting and the actual proprietary TypeSafe AI Jev neurosymbolic engine.
+
+---
+
+## 🔍 Semantic Boundary: Practice Workbench vs. Actual Jev
+
+This project adheres to a strict policy of architectural transparency and honesty:
+
+| Dimension | Mode A: LLM Practice Mode | Mode B: Native Jev Mode |
+|:---|:---|:---|
+| **What is executing?** | Standard commodity LLMs (Groq, OpenAI, Gemini, Anthropic, Ollama) | Authentic TypeSafe AI Jev System 1 runtime |
+| **Is this actual Jev?** | **No.** It is an educational practice / emulation layer | **Yes.** Executes against official Jev infrastructure |
+| **Do I need a Jev license?** | **No.** Practice freely with any existing LLM key (e.g. free Groq key) | **Yes.** Requires authorized native Jev API credentials |
+| **Primary purpose** | Learn JEV concepts, draft questions/criteria rubrics, and prototype workflows | Authoritative production evaluation with official Jev guarantees |
+| **Equivalence guarantee?** | **No.** Emulates JEV concepts via structured prompting; makes no equivalence claim | **Yes.** Full native guarantees provided by TypeSafe AI |
+| **Cost attribution** | Direct to your personal LLM provider (or free via Groq) | Direct to your official Jev organization account |
+
+---
+
 ## 🎯 The Real Problem This Project Solves
 
-Developers interested in **TypeSafe AI** and the **JEV** (Judgment, Evaluation, and Verification) neurosymbolic paradigm need a hands-on environment to experiment with evaluation workflows. However:
-- Access to official hosted environments may require enterprise licensing, permissions, or waiting for access.
-- Most developers already hold general-purpose LLM API keys (such as **Groq**, **OpenAI**, **Anthropic**, or **Google Gemini**), but do not yet have a native Jev API key.
+Developers interested in **TypeSafe AI** and the **JEV** (Judgment, Evaluation, and Verification) neurosymbolic paradigm need a practical place to experiment with its programming and evaluation concepts. However:
+- Access to official hosted environments may require enterprise licensing, approvals, account requirements, or waitlists.
+- Many developers already hold general-purpose LLM API keys (such as **Groq**, **OpenAI**, **Anthropic**, or **Google Gemini**), but do not have native Jev API access at the stage when they are simply trying to learn and prototype.
 
 **TypeSafe Jev Playground** bridges this gap:
 ```text
-Existing LLM API Key (Groq / OpenAI / Gemini / Anthropic / Ollama)
+Existing LLM Key (Groq / OpenAI / Gemini / Anthropic / Ollama)
                           +
           JEV Concepts & Neurosymbolic Semantics
                           ↓
-          TypeSafe Jev Developer Workbench
+      TypeSafe Jev Practice Workbench (BYO LLM)
                           ↓
             State  +  Atomic Questions Map
                           ↓
@@ -34,20 +59,25 @@ Existing LLM API Key (Groq / OpenAI / Gemini / Anthropic / Ollama)
                           ↓
          Calibrated Probabilities & Typed Results
                           ↓
-         Prototype Real JEV Workflows for Free
+       Prototype Real JEV Concepts Before Production
 ```
 
-> ⚠️ **Important Semantic Distinction:**  
-> **LLM Practice Mode** provides an educational practice environment using LLM adapters to emulate JEV concepts. It does not falsely claim equivalence to official hosted Jev runtimes. Users with native access can toggle **Native Jev Mode** to run directly against official Jev infrastructure.
+Developers can go from:
+> *"Let me see how JEV works and how Noul, Score, and Choice operate."*
+
+to:
+> *"I can prototype a real JEV-powered evaluation workflow."*
+
+without the official hosted playground being the limiting factor. When ready, validated concepts can transition directly to native Jev.
 
 ---
 
 ## ✨ Features
 
-- **Aligned with Official Documentation**: Designed to mirror the official [TypeSafe AI Documentation](https://docs.typesafe.ai) and playground layout.
-- **Pure Domain State**: State contains natural domain facts (`{"food": "Burger", ...}`) without artificial meta-tags.
+- **Aligned with Official Documentation**: Designed to mirror the layout, schemas, and interaction model from the official [TypeSafe AI Documentation](https://docs.typesafe.ai).
+- **Pure Domain State**: State contains natural domain context (`{"food": "Burger", ...}`) without artificial meta-tags.
 - **Official Questions Map**: Multi-question evaluation support mapping question keys to instructions and criteria rubrics.
-- **All 3 JEV Primitives**:
+- **All 3 JEV Primitives Supported**:
   - **`noul`**: Calibrated truth-value probabilities (`0.000`–`1.000`) with deterministic boolean thresholding (`verdict: true/false`).
   - **`score`**: Bounded continuous metrics (`0.000`–`1.000`) with rubric labels and probability distributions.
   - **`choice`**: Categorical classification with normalized probability distributions across options.
@@ -55,24 +85,14 @@ Existing LLM API Key (Groq / OpenAI / Gemini / Anthropic / Ollama)
 - **Ultra-Fast with Groq LPUs**: Sub-second evaluations (~800ms) with automatic retry backoff and token-reset rate-limit handling.
 - **100% Client-Held BYOK (Zero Server Persistence)**: API keys reside strictly in browser memory during requests and are never stored on disk, never written to databases, and never logged.
 - **Official 2-Column Split Layout**: Line-numbered State and Questions editors on the left; official response decision table on the right.
-- **Interactive Walkthrough Tour**: Built-in 4-step onboarding guide for developers new to JEV.
+- **Interactive Walkthrough Tour**: Built-in 4-step onboarding guide for developers new to JEV concepts.
 - **Browser-Local Experiment History**: Inspect past evaluations, compare metrics, and restore previous states with zero credential persistence.
 
 ---
 
-## 🧭 Dual Execution Modes
-
-| Feature / Aspect | Mode A: LLM Practice Mode | Mode B: Native Jev Mode |
-|---|---|---|
-| **Primary Purpose** | Educational learning, experimentation & prototyping | Authoritative production evaluation |
-| **Required Key** | BYO LLM Key (Groq, OpenAI, Anthropic, Gemini, Ollama) | Authorized Jev API Key |
-| **Default Model** | `qwen/qwen3.8-27b` (Groq), `gpt-4o-mini`, `claude-3-5-haiku` | `native-jev-systemone` |
-| **Cost Attribution** | Direct to user's LLM provider account (or free via Groq) | Direct to user's Jev organization account |
-| **Semantic Guarantee** | Educational simulation; no false equivalence | Official native Jev runtime judgment |
-
----
-
 ## 📐 Official JEV Product Model
+
+The workbench implements the core abstractions of the JEV paradigm:
 
 ```text
 STATE (Domain Facts)

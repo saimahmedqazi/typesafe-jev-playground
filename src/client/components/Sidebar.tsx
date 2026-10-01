@@ -153,10 +153,10 @@ export function Sidebar({
       <div className="p-3 mx-3 my-2 rounded-lg bg-[#0e1626] border border-blue-500/20 text-[11px] text-gray-400 space-y-1">
         <div className="flex items-center space-x-1.5 text-blue-400 font-semibold text-[10px] uppercase tracking-wider">
           <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Practice Workbench</span>
+          <span>LLM Practice Mode</span>
         </div>
         <p className="text-[10px] text-gray-400 leading-tight">
-          Evaluate Jev primitives (Noul, Score, Choice) with your personal LLM API key for free practice.
+          Educational workbench for practicing JEV concepts with commodity LLMs. Not official Jev runtime.
         </p>
       </div>
 
