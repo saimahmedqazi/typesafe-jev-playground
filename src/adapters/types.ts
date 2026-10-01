@@ -22,21 +22,30 @@ export const PROVIDER_ENDPOINTS = {
   openai: 'https://api.openai.com/v1/chat/completions',
   anthropic: 'https://api.anthropic.com/v1/messages',
   gemini: 'https://generativelanguage.googleapis.com/v1beta/models',
+  groq: 'https://api.groq.com/openai/v1/chat/completions',
 } as const;
 
 /**
  * Recommended default models per provider for cost-effective JEV practice.
  */
 export const PROVIDER_DEFAULT_MODELS: Record<LLMProvider, string> = {
+  groq: 'llama-3.3-70b-versatile',
   openai: 'gpt-4o-mini',
   anthropic: 'claude-3-5-haiku-20241022',
   gemini: 'gemini-1.5-flash',
+  custom: 'default-model',
 };
 
 /**
  * Catalog of verified supported models per provider.
  */
 export const SUPPORTED_MODELS: Record<LLMProvider, ModelOption[]> = {
+  groq: [
+    { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B Versatile', description: 'Flagship Meta open-weights model on Groq LPU inference' },
+    { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant', description: 'Ultra low-latency fast evaluation model' },
+    { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B 32k', description: 'High-speed MoE model on Groq' },
+    { id: 'gemma2-9b-it', name: 'Gemma 2 9B IT', description: 'Google Gemma 2 hosted on Groq' },
+  ],
   openai: [
     { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Fast, cost-effective reasoning for rapid atomic evaluations' },
     { id: 'gpt-4o', name: 'GPT-4o', description: 'High-capability flagship model for complex state evaluations' },
@@ -50,6 +59,9 @@ export const SUPPORTED_MODELS: Record<LLMProvider, ModelOption[]> = {
     { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', description: 'High-speed Google multimodal model optimized for latency' },
     { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', description: 'Advanced reasoning model with deep analytical capability' },
     { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', description: 'Next-generation low-latency Google model' },
+  ],
+  custom: [
+    { id: 'custom-model', name: 'Custom Model', description: 'Any model ID hosted on your OpenAI-compatible endpoint' },
   ],
 };
 

@@ -14,13 +14,27 @@ export interface OpenAIExecutionParams {
   temperature?: number;
   question: AtomicQuestion;
   prompt: EvaluationPrompt;
+  endpoint?: string;
+  providerName?: string;
   fetchFn?: typeof fetch;
 }
 
 export async function executeOpenAI(params: OpenAIExecutionParams): Promise<ProviderExecutionResult> {
-  const { apiKey, model, temperature = 0, question, prompt, fetchFn = fetch } = params;
+  const {
+    apiKey,
+    model,
+    temperature = 0,
+    question,
+    prompt,
+    endpoint = PROVIDER_ENDPOINTS.openai,
+    providerName = 'OpenAI',
+    fetchFn = fetch,
+  } = params;
 
   const schemaFormat = getOpenAISchema(question);
+  const isNativeOpenAI = endpoint === PROVIDER_ENDPOINTS.openai;
+  // Standard strict json_schema for OpenAI; json_object for universal OpenAI-compatible engines (Groq, Ollama, vLLM)
+  const responseFormat = isNativeOpenAI ? schemaFormat : { type: 'json_object' };
 
   const payload = {
     model,
@@ -28,13 +42,13 @@ export async function executeOpenAI(params: OpenAIExecutionParams): Promise<Prov
       { role: 'system', content: prompt.systemPrompt },
       { role: 'user', content: prompt.userPrompt },
     ],
-    response_format: schemaFormat,
+    response_format: responseFormat,
     temperature,
   };
 
   let response: Response;
   try {
-    response = await fetchFn(PROVIDER_ENDPOINTS.openai, {
+    response = await fetchFn(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +59,7 @@ export async function executeOpenAI(params: OpenAIExecutionParams): Promise<Prov
   } catch (err) {
     throw new JevEvaluationError(
       EvaluationErrorCode.PROVIDER_ERROR,
-      `Failed to connect to OpenAI endpoint: ${err instanceof Error ? err.message : String(err)}`,
+      `Failed to connect to ${providerName} endpoint: ${err instanceof Error ? err.message : String(err)}`,
       502
     );
   }
@@ -61,7 +75,7 @@ export async function executeOpenAI(params: OpenAIExecutionParams): Promise<Prov
     if (response.status === 401 || response.status === 403) {
       throw new JevEvaluationError(
         EvaluationErrorCode.INVALID_CREDENTIAL,
-        'OpenAI authentication failed: Invalid or expired API key.',
+        `${providerName} authentication failed: Invalid or expired API key.`,
         response.status
       );
     }
@@ -69,14 +83,14 @@ export async function executeOpenAI(params: OpenAIExecutionParams): Promise<Prov
     if (response.status === 429) {
       throw new JevEvaluationError(
         EvaluationErrorCode.RATE_LIMITED,
-        'OpenAI rate limit or usage quota exceeded.',
+        `${providerName} rate limit or usage quota exceeded.`,
         429
       );
     }
 
     throw new JevEvaluationError(
       EvaluationErrorCode.PROVIDER_ERROR,
-      `OpenAI returned error status ${response.status}: ${errorBody.slice(0, 200)}`,
+      `${providerName} returned error status ${response.status}: ${errorBody.slice(0, 200)}`,
       response.status
     );
   }

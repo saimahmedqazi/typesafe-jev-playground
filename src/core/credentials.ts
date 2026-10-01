@@ -10,7 +10,7 @@
 
 import { ExecutionMode } from './modes';
 
-export type LLMProviderType = 'openai' | 'anthropic' | 'gemini';
+export type LLMProviderType = 'openai' | 'anthropic' | 'gemini' | 'groq' | 'custom';
 
 export interface LLMUserCredentials {
   apiKey: string;

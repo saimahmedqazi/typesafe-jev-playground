@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Terminal, BookOpen, Sliders } from 'lucide-react';
 import { Header } from './components/Header';
 import { ConfigPanel } from './components/ConfigPanel';
 import { WorkspacePanel } from './components/WorkspacePanel';
 import { ResultInspector } from './components/ResultInspector';
 import { HistoryDrawer } from './components/HistoryDrawer';
+import { SettingsModal } from './components/SettingsModal';
+import { WalkthroughModal, WALKTHROUGH_STORAGE_KEY } from './components/WalkthroughModal';
 import { ClientQuestion, ClientPreset, WorkbenchConfig, WorkbenchHealth } from './types';
 import { EvaluationResponse, ErrorDetails, EvaluationErrorCode } from '../core';
 import { PROVIDER_DEFAULT_MODELS } from '../adapters/types';
@@ -29,25 +31,44 @@ export default function App() {
   // 3. Configuration State (held in memory only)
   const [config, setConfig] = useState<WorkbenchConfig>({
     mode: 'llm-practice',
-    provider: 'openai',
-    model: PROVIDER_DEFAULT_MODELS.openai,
+    provider: 'groq',
+    model: PROVIDER_DEFAULT_MODELS.groq,
     temperature: 0,
     llmApiKey: '',
     nativeJevKey: '',
     nativeOrgId: '',
+    customEndpoint: '',
   });
 
-  // 4. State Editor
+  // 4. Modals state
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isWalkthroughOpen, setIsWalkthroughOpen] = useState<boolean>(false);
+
+  // 5. State Editor
   const [stateJson, setStateJson] = useState<string>('{\n  "object": "sandwich",\n  "bread": true,\n  "filling": "chicken",\n  "sauce": true,\n  "sliced_bread": true\n}');
 
-  // 5. Evaluation execution state
+  // 6. Evaluation execution state
   const [isEvaluating, setIsEvaluating] = useState<boolean>(false);
   const [evaluationResponse, setEvaluationResponse] = useState<EvaluationResponse | null>(null);
   const [evaluationError, setEvaluationError] = useState<ErrorDetails | null>(null);
 
-  // 6. Local Experiment History state
+  // 7. Local Experiment History state
   const [historyRecords, setHistoryRecords] = useState<ExperimentRecord[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
+
+  // First-time walkthrough check
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const seen = window.localStorage.getItem(WALKTHROUGH_STORAGE_KEY);
+        if (!seen) {
+          setIsWalkthroughOpen(true);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Poll health status on mount
   useEffect(() => {
@@ -101,6 +122,13 @@ export default function App() {
     if (q.defaultState) {
       setStateJson(JSON.stringify(q.defaultState, null, 2));
     }
+    setEvaluationResponse(null);
+    setEvaluationError(null);
+  };
+
+  // Update workbench configuration
+  const handleConfigChange = (updated: Partial<WorkbenchConfig>) => {
+    setConfig((prev) => ({ ...prev, ...updated }));
   };
 
   // Format JSON action
@@ -109,30 +137,25 @@ export default function App() {
       const parsed = JSON.parse(stateJson);
       setStateJson(JSON.stringify(parsed, null, 2));
     } catch {
-      // ignore
+      // syntax error
     }
   };
 
-  // Reset state action
+  // Reset state to default question state
   const handleResetState = () => {
     if (activeQuestion?.defaultState) {
       setStateJson(JSON.stringify(activeQuestion.defaultState, null, 2));
     }
   };
 
-  // Load preset action
+  // Load Preset
   const handleLoadPreset = (preset: ClientPreset) => {
     setStateJson(JSON.stringify(preset.state, null, 2));
   };
 
-  // Partial config updater
-  const handleConfigChange = (updated: Partial<WorkbenchConfig>) => {
-    setConfig((prev) => ({ ...prev, ...updated }));
-  };
-
-  // Execute Evaluation Pipeline
+  // Run Evaluation
   const handleRunEvaluation = useCallback(async () => {
-    if (!activeQuestion || isEvaluating) return;
+    if (!activeQuestion) return;
 
     let parsedState: Record<string, unknown>;
     try {
@@ -156,6 +179,9 @@ export default function App() {
       if (config.llmApiKey) {
         headers['x-user-llm-key'] = config.llmApiKey;
         headers['x-user-llm-provider'] = config.provider;
+        if (config.customEndpoint) {
+          headers['x-user-llm-endpoint'] = config.customEndpoint;
+        }
       }
     } else if (config.mode === 'native-jev') {
       if (config.nativeJevKey) {
@@ -177,6 +203,7 @@ export default function App() {
               provider: config.provider,
               model: config.model,
               temperature: config.temperature,
+              ...(config.customEndpoint ? { customEndpoint: config.customEndpoint } : {}),
             }
           : undefined,
     };
@@ -224,15 +251,15 @@ export default function App() {
     } catch (err) {
       setEvaluationError({
         code: EvaluationErrorCode.PROVIDER_ERROR,
-        message: err instanceof Error ? err.message : 'Failed to reach evaluation API',
+        message: err instanceof Error ? err.message : 'Network request failed',
         statusCode: 500,
       });
     } finally {
       setIsEvaluating(false);
     }
-  }, [activeQuestion, isEvaluating, stateJson, config]);
+  }, [activeQuestion, config, stateJson]);
 
-  // Load a historical experiment back into the workbench
+  // Load a historical experiment record back into workbench
   const handleLoadExperiment = (record: ExperimentRecord) => {
     setConfig((prev) => ({
       ...prev,
@@ -292,6 +319,12 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [handleRunEvaluation]);
 
+  const hasConfiguredKey = Boolean(
+    config.mode === 'llm-practice'
+      ? config.llmApiKey && config.llmApiKey.trim().length > 0
+      : config.nativeJevKey && config.nativeJevKey.trim().length > 0
+  );
+
   return (
     <div className="min-h-screen bg-[#090d16] text-gray-200 flex flex-col font-sans">
       {/* Top Navigation */}
@@ -300,33 +333,62 @@ export default function App() {
         loadingHealth={loadingHealth}
         healthError={healthError}
         historyCount={historyRecords.length}
+        hasKey={hasConfiguredKey}
         onOpenHistory={() => setIsHistoryOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenWalkthrough={() => setIsWalkthroughOpen(true)}
       />
 
       {/* Main Container */}
       <main className="flex-1 max-w-[1600px] w-full mx-auto px-6 py-6 flex flex-col space-y-5">
-        {/* Semantic Boundary Banner */}
+        
+        {/* Semantic Boundary Notice */}
         <section className="bg-[#0f172a]/70 border border-blue-500/30 rounded-xl p-4 shadow-md relative overflow-hidden">
-          <div className="flex items-start space-x-3.5">
-            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
-              <Sparkles className="w-4 h-4" />
+          <div className="flex items-start justify-between">
+            <div className="flex items-start space-x-3.5">
+              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0 mt-0.5">
+                <Terminal className="w-4 h-4" />
+              </div>
+              <div className="space-y-0.5">
+                <h2 className="text-xs font-semibold text-white tracking-wide uppercase">
+                  Architecture &amp; Semantic Boundary
+                </h2>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  <strong>LLM Practice Mode</strong> allows you to experiment with JEV concepts (State, Atomic Questions, Noul, Score) using your personal LLM API key. It is an educational practice environment and does not claim equivalence to native Jev execution. Users with official access can switch to <strong>Native Jev Mode</strong> to run evaluations directly on official Jev infrastructure.
+                </p>
+              </div>
             </div>
-            <div className="space-y-0.5">
-              <h2 className="text-xs font-semibold text-white tracking-wide uppercase">
-                Architecture &amp; Semantic Boundary
-              </h2>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                <strong>LLM Practice Mode</strong> allows you to experiment with JEV concepts (State, Atomic Questions, Noul, Score) using your personal LLM API key. It is an educational practice environment and does not claim equivalence to native Jev execution. Users with official access can switch to <strong>Native Jev Mode</strong> to run evaluations directly on official Jev infrastructure.
-              </p>
+
+            <div className="flex items-center space-x-2 shrink-0 ml-4">
+              <button
+                type="button"
+                onClick={() => setIsWalkthroughOpen(true)}
+                className="px-2.5 py-1 text-xs rounded-md bg-gray-900 hover:bg-gray-800 border border-gray-800 text-blue-400 hover:text-blue-300 flex items-center space-x-1 transition-colors"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Guide</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSettingsOpen(true)}
+                className="px-2.5 py-1 text-xs rounded-md bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-200 hover:text-white flex items-center space-x-1 transition-colors"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>Settings</span>
+              </button>
             </div>
           </div>
         </section>
 
         {/* 3-Column Developer Workbench Layout */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start flex-1">
-          {/* Column 1: Configuration (3.5 cols) */}
+          {/* Column 1: Configuration (3 cols) */}
           <div className="lg:col-span-3">
-            <ConfigPanel config={config} onChange={handleConfigChange} />
+            <ConfigPanel 
+              config={config} 
+              onChange={handleConfigChange} 
+              onOpenSettings={() => setIsSettingsOpen(true)}
+            />
           </div>
 
           {/* Column 2: Question & State Workspace (5 cols) */}
@@ -349,7 +411,7 @@ export default function App() {
             />
           </div>
 
-          {/* Column 3: Result Inspector (3.5 cols) */}
+          {/* Column 3: Result Inspector (4 cols) */}
           <div className="lg:col-span-4">
             <ResultInspector
               isEvaluating={isEvaluating}
@@ -359,6 +421,21 @@ export default function App() {
           </div>
         </section>
       </main>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        config={config}
+        onChange={handleConfigChange}
+      />
+
+      {/* Walkthrough / Guide Modal */}
+      <WalkthroughModal
+        isOpen={isWalkthroughOpen}
+        onClose={() => setIsWalkthroughOpen(false)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
 
       {/* History Slide-over Drawer */}
       <HistoryDrawer
@@ -372,7 +449,18 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-gray-800 bg-[#0d121f] px-6 py-3 text-center text-xs text-gray-500 flex items-center justify-between">
-        <span>TypeSafe Jev Playground &bull; MIT License</span>
+        <div className="flex items-center space-x-3">
+          <span>TypeSafe Jev Playground</span>
+          <span>&bull;</span>
+          <a
+            href="https://jev.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            Official Jev Site (jev.ai)
+          </a>
+        </div>
         <span className="font-mono text-[11px]">Strict BYOK &bull; Zero Server Persistence</span>
       </footer>
     </div>

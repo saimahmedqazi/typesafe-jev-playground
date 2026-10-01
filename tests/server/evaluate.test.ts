@@ -262,4 +262,46 @@ describe('Server End-to-End API Integration', () => {
       expect(res.body.error.code).toBe('PAYLOAD_TOO_LARGE');
     });
   });
+
+  describe('GET & POST /api/models', () => {
+    it('returns default catalog when no API key is provided', async () => {
+      const res = await request(app).get('/api/models?provider=groq');
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.live).toBe(false);
+      expect(Array.isArray(res.body.models)).toBe(true);
+      expect(res.body.models.some((m: { id: string }) => m.id.includes('llama-3.3'))).toBe(true);
+    });
+
+    it('fetches live model list from Groq when valid key is supplied', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            data: [
+              { id: 'llama-3.3-70b-versatile' },
+              { id: 'llama-3.1-8b-instant' },
+              { id: 'mixtral-8x7b-32768' },
+            ],
+          }),
+        })
+      );
+
+      const res = await request(app)
+        .post('/api/models')
+        .set('x-user-llm-key', 'gsk_test_12345')
+        .send({
+          provider: 'groq',
+          apiKey: 'gsk_test_12345',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.live).toBe(true);
+      expect(res.body.models.map((m: { id: string }) => m.id)).toContain('llama-3.3-70b-versatile');
+    });
+  });
 });

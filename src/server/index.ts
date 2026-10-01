@@ -42,6 +42,12 @@ app.get('/api/health', (_req, res) => {
 app.get('/api/questions', defaultEvaluationHandlers.handleQuestionsListRequest);
 
 /**
+ * Models discovery and connection test endpoint.
+ */
+app.get('/api/models', defaultEvaluationHandlers.handleModelsDiscoveryRequest);
+app.post('/api/models', defaultEvaluationHandlers.handleModelsDiscoveryRequest);
+
+/**
  * Evaluation execution endpoint.
  */
 app.post('/api/evaluate', evaluationRateLimiter, defaultEvaluationHandlers.handleEvaluateRequest);

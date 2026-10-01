@@ -325,5 +325,118 @@ describe('LLM Execution Adapter', () => {
         expect(response.error.message).toContain('[REDACTED_KEY]');
       }
     });
+
+    it('successfully dispatches to Groq API endpoint with LPU models', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  value: true,
+                  confidence: 0.96,
+                  rationale: 'Evaluated on Groq LPU with llama-3.3-70b-versatile.',
+                }),
+              },
+            },
+          ],
+          usage: {
+            prompt_tokens: 110,
+            completion_tokens: 28,
+            total_tokens: 138,
+          },
+        }),
+      });
+
+      const adapter = new LLMExecutionAdapter({ fetchFn: mockFetch as unknown as typeof fetch });
+      const context: EvaluationContext = {
+        mode: 'llm-practice',
+        questionId: 'is_sandwich',
+        questionType: 'noul',
+        state: validSandwichState,
+        modelConfig: {
+          provider: 'groq',
+          model: 'llama-3.3-70b-versatile',
+        },
+      };
+
+      const response = await adapter.execute(context, { apiKey: 'gsk_test_key_12345', provider: 'groq' });
+      expect(response.success).toBe(true);
+      if (response.success) {
+        expect(response.result.type).toBe('noul');
+        expect(response.result.value).toBe(true);
+        expect(response.metadata.provider).toBe('groq');
+        expect(response.metadata.model).toBe('llama-3.3-70b-versatile');
+      }
+      expect(mockFetch).toHaveBeenCalledWith(
+        PROVIDER_ENDPOINTS.groq,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer gsk_test_key_12345',
+          }),
+        })
+      );
+    });
+
+    it('successfully dispatches to Custom OpenAI-compatible endpoint', async () => {
+      const customUrl = 'http://localhost:11434/v1/chat/completions';
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  value: 0.88,
+                  confidence: 0.9,
+                  rationale: 'Local Ollama model evaluation score.',
+                }),
+              },
+            },
+          ],
+          usage: {
+            prompt_tokens: 80,
+            completion_tokens: 20,
+            total_tokens: 100,
+          },
+        }),
+      });
+
+      const adapter = new LLMExecutionAdapter({ fetchFn: mockFetch as unknown as typeof fetch });
+      const context: EvaluationContext = {
+        mode: 'llm-practice',
+        questionId: 'new_score_1',
+        questionType: 'score',
+        state: validScoreState,
+        modelConfig: {
+          provider: 'custom',
+          model: 'mistral-nemo',
+          customEndpoint: customUrl,
+        },
+      };
+
+      const response = await adapter.execute(context, {
+        apiKey: 'local-test-key',
+        provider: 'custom',
+        endpoint: customUrl,
+      });
+
+      expect(response.success).toBe(true);
+      if (response.success) {
+        expect(response.result.type).toBe('score');
+        expect(response.result.value).toBe(0.88);
+        expect(response.metadata.provider).toBe('custom');
+      }
+      expect(mockFetch).toHaveBeenCalledWith(
+        customUrl,
+        expect.objectContaining({
+          method: 'POST',
+        })
+      );
+    });
   });
 });

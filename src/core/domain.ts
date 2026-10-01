@@ -86,6 +86,7 @@ export interface ModelConfig {
   provider: string;
   model: string;
   temperature?: number;
+  customEndpoint?: string;
 }
 
 /**

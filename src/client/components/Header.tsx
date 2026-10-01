@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, History } from 'lucide-react';
+import { ShieldCheck, History, Sliders, BookOpen, Terminal, CheckCircle2, AlertCircle } from 'lucide-react';
 import { WorkbenchHealth } from '../types';
 
 export interface HeaderProps {
@@ -7,7 +7,10 @@ export interface HeaderProps {
   loadingHealth: boolean;
   healthError: string | null;
   historyCount: number;
+  hasKey: boolean;
   onOpenHistory: () => void;
+  onOpenSettings: () => void;
+  onOpenWalkthrough: () => void;
 }
 
 export function Header({
@@ -15,13 +18,16 @@ export function Header({
   loadingHealth,
   healthError,
   historyCount,
+  hasKey,
   onOpenHistory,
+  onOpenSettings,
+  onOpenWalkthrough,
 }: HeaderProps) {
   return (
     <header className="border-b border-gray-800 bg-[#0d121f]/90 backdrop-blur sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between">
       <div className="flex items-center space-x-3">
-        <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold font-mono">
-          ⚡
+        <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+          <Terminal className="w-4 h-4" />
         </div>
         <div>
           <div className="flex items-center space-x-2">
@@ -34,12 +40,24 @@ export function Header({
         </div>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3">
+        
+        {/* Guide & Docs Walkthrough Button */}
+        <button
+          type="button"
+          onClick={onOpenWalkthrough}
+          className="px-2.5 py-1.5 rounded-md bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-xs text-gray-300 transition-colors flex items-center space-x-1.5"
+          title="Open Guide & Walkthrough"
+        >
+          <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+          <span>Guide</span>
+        </button>
+
         {/* History Trigger Button */}
         <button
           type="button"
           onClick={onOpenHistory}
-          className="px-2.5 py-1 rounded-md bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-xs text-gray-300 transition-colors flex items-center space-x-1.5"
+          className="px-2.5 py-1.5 rounded-md bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-xs text-gray-300 transition-colors flex items-center space-x-1.5"
           title="Open Experiment History"
         >
           <History className="w-3.5 h-3.5 text-blue-400" />
@@ -49,8 +67,25 @@ export function Header({
           </span>
         </button>
 
+        {/* Settings Button */}
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="px-2.5 py-1.5 rounded-md bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-xs text-gray-200 transition-colors flex items-center space-x-1.5"
+          title="Configure API Credentials & Model"
+        >
+          <Sliders className="w-3.5 h-3.5 text-blue-400" />
+          <span>Settings</span>
+          {hasKey ? (
+            <span className="w-2 h-2 rounded-full bg-emerald-400" title="API Key Configured" />
+          ) : (
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" title="API Key Required" />
+          )}
+        </button>
+
         <div className="h-4 w-px bg-gray-800" />
 
+        {/* Backend API Health Indicator */}
         <div className="flex items-center space-x-2 text-xs">
           <span className="text-gray-400">API:</span>
           {loadingHealth ? (
@@ -70,6 +105,7 @@ export function Header({
 
         <div className="h-4 w-px bg-gray-800" />
 
+        {/* Zero-Fallback Policy Pill */}
         <div className="text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 flex items-center space-x-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
           <span>Zero-Fallback BYOK</span>

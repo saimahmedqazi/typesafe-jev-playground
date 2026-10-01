@@ -30,6 +30,7 @@ export interface WorkbenchConfig {
   llmApiKey: string;
   nativeJevKey: string;
   nativeOrgId: string;
+  customEndpoint?: string;
 }
 
 export interface WorkbenchHealth {

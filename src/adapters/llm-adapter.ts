@@ -20,7 +20,7 @@ import {
 } from '../core';
 import { defaultQuestionRegistry } from '../registry';
 import { IQuestionRegistry } from '../registry/types';
-import { ExecutionAdapter, LLMProvider, ProviderExecutionResult, PROVIDER_DEFAULT_MODELS } from './types';
+import { ExecutionAdapter, LLMProvider, ProviderExecutionResult, PROVIDER_DEFAULT_MODELS, PROVIDER_ENDPOINTS } from './types';
 import { buildEvaluationPrompt } from './prompt';
 import { executeOpenAI } from './providers/openai';
 import { executeAnthropic } from './providers/anthropic';
@@ -97,16 +97,25 @@ export class LLMExecutionAdapter implements ExecutionAdapter {
 
       // 5. Resolve Model Configuration
       const rawProvider = (context.modelConfig?.provider || 'openai').toLowerCase();
-      if (rawProvider !== 'openai' && rawProvider !== 'anthropic' && rawProvider !== 'gemini') {
+      if (
+        rawProvider !== 'openai' &&
+        rawProvider !== 'anthropic' &&
+        rawProvider !== 'gemini' &&
+        rawProvider !== 'groq' &&
+        rawProvider !== 'custom'
+      ) {
         throw new JevEvaluationError(
           EvaluationErrorCode.UNSUPPORTED_PROVIDER,
-          `Unsupported LLM provider '${rawProvider}'. Supported providers: openai, anthropic, gemini.`,
+          `Unsupported LLM provider '${rawProvider}'. Supported providers: groq, openai, anthropic, gemini, custom.`,
           400
         );
       }
       const provider = rawProvider as LLMProvider;
       const model = context.modelConfig?.model || PROVIDER_DEFAULT_MODELS[provider];
       const temperature = context.modelConfig?.temperature ?? 0;
+      const customEndpoint =
+        (credentials && 'endpoint' in credentials && credentials.endpoint) ||
+        context.modelConfig?.customEndpoint;
 
       // 6. Build JEV Evaluation Prompt
       const prompt = buildEvaluationPrompt(question, context.state);
@@ -119,6 +128,7 @@ export class LLMExecutionAdapter implements ExecutionAdapter {
         temperature,
         question,
         prompt,
+        customEndpoint,
       });
 
       // 8. Normalize Output to JEV Typed Result
@@ -165,10 +175,35 @@ export class LLMExecutionAdapter implements ExecutionAdapter {
     temperature: number;
     question: AtomicQuestion;
     prompt: ReturnType<typeof buildEvaluationPrompt>;
+    customEndpoint?: string;
   }): Promise<ProviderExecutionResult> {
-    const { provider, apiKey, model, temperature, question, prompt } = params;
+    const { provider, apiKey, model, temperature, question, prompt, customEndpoint } = params;
 
     switch (provider) {
+      case 'groq':
+        return executeOpenAI({
+          apiKey,
+          model,
+          temperature,
+          question,
+          prompt,
+          endpoint: PROVIDER_ENDPOINTS.groq,
+          providerName: 'Groq',
+          fetchFn: this.fetchFn,
+        });
+
+      case 'custom':
+        return executeOpenAI({
+          apiKey,
+          model,
+          temperature,
+          question,
+          prompt,
+          endpoint: customEndpoint || 'http://localhost:11434/v1/chat/completions',
+          providerName: 'Custom Endpoint',
+          fetchFn: this.fetchFn,
+        });
+
       case 'openai':
         return executeOpenAI({
           apiKey,
