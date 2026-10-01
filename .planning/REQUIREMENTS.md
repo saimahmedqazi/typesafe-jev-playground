@@ -29,9 +29,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Execution Adapters & LLM Practice Engine (ADAPT)
 
-- [ ] **ADAPT-01**: Common Execution Adapter interface (`ExecutionAdapter`) decoupling JEV evaluation semantics from backends.
-- [ ] **ADAPT-02**: LLM Practice Adapter implementing structured JEV prompting, tool/structured output formatting, and response parsing.
-- [ ] **ADAPT-03**: Multi-provider LLM support for OpenAI, Anthropic, and Google Gemini.
+- [x] **ADAPT-01**: Common Execution Adapter interface (`ExecutionAdapter`) decoupling JEV evaluation semantics from backends.
+- [x] **ADAPT-02**: LLM Practice Adapter implementing structured JEV prompting, tool/structured output formatting, and response parsing.
+- [x] **ADAPT-03**: Multi-provider LLM support for OpenAI, Anthropic, and Google Gemini.
 - [ ] **ADAPT-04**: Native Jev execution adapter interface supporting credentials and execution against Jev infrastructure.
 
 ### Server API & Runtime Validation (API)
@@ -99,9 +99,9 @@ Which phases cover which requirements. Populated during roadmap creation.
 | REG-02 | Phase 2 | Complete |
 | REG-03 | Phase 2 | Complete |
 | REG-04 | Phase 2 | Complete |
-| ADAPT-01 | Phase 3 | Pending |
-| ADAPT-02 | Phase 3 | Pending |
-| ADAPT-03 | Phase 3 | Pending |
+| ADAPT-01 | Phase 3 | Complete |
+| ADAPT-02 | Phase 3 | Complete |
+| ADAPT-03 | Phase 3 | Complete |
 | ADAPT-04 | Phase 5 | Pending |
 | API-01 | Phase 4 | Pending |
 | API-02 | Phase 4 | Pending |

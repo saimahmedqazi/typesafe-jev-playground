@@ -65,8 +65,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 03-01: ExecutionAdapter base contracts and prompt/schema generation engine
-- [ ] 03-02: OpenAI, Anthropic, and Google Gemini adapter implementations with schema enforcement
+- [x] 03-01: ExecutionAdapter base contracts and prompt/schema generation engine
+- [x] 03-02: OpenAI, Anthropic, and Google Gemini adapter implementations with schema enforcement
 
 ### Phase 4: Server Evaluation Pipeline, Validation & Security
 **Goal**: Build strongly typed `/api/evaluate` backend pipeline with Zod runtime validation, rate limiting, and structured error responses.
@@ -153,7 +153,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Foundation, Execution Modes & Domain Models | 2/2 | Complete | 2026-10-01 |
 | 2. Question Registry & Initial Primitives | 2/2 | Complete | 2026-10-01 |
-| 3. Execution Adapters & Multi-Provider LLM Engine | 0/2 | Not started | - |
+| 3. Execution Adapters & Multi-Provider LLM Engine | 2/2 | Complete | 2026-10-01 |
 | 4. Server Evaluation Pipeline, Validation & Security | 0/2 | Not started | - |
 | 5. Native Jev Adapter Integration | 0/1 | Not started | - |
 | 6. Developer Workbench UI & State Editor | 0/3 | Not started | - |
