@@ -1,0 +1,143 @@
+export interface StatePreset {
+  id: string;
+  name: string;
+  description: string;
+  questionId: string;
+  state: Record<string, unknown>;
+}
+
+export const STATE_PRESETS: StatePreset[] = [
+  // Presets for is_sandwich (Noul)
+  {
+    id: 'classic-blt',
+    name: 'Classic BLT Sandwich',
+    description: 'Crisp bacon, lettuce, and sliced tomato layered between two slices of toasted sourdough.',
+    questionId: 'is_sandwich',
+    state: {
+      object: 'BLT Sandwich',
+      bread: true,
+      bread_type: 'toasted sourdough',
+      slices: 2,
+      filling: 'crisp bacon, fresh romaine lettuce, and sliced tomato',
+      sauce: 'mayonnaise',
+      form_factor: 'closed two-slice sandwich',
+      portable: true,
+    },
+  },
+  {
+    id: 'open-faced-tartine',
+    name: 'Avocado Tartine (Open-Faced)',
+    description: 'A single slice of rustic bread topped with mashed avocado and sea salt.',
+    questionId: 'is_sandwich',
+    state: {
+      object: 'Avocado Tartine',
+      bread: true,
+      bread_type: 'rustic levain loaf',
+      slices: 1,
+      filling: 'smashed avocado, radishes, flaky sea salt',
+      form_factor: 'open-faced',
+      portable: false,
+    },
+  },
+  {
+    id: 'hot-dog',
+    name: 'Hot Dog in Bun',
+    description: 'A beef frankfurter nestled inside a single split-top bun (classic culinary debate).',
+    questionId: 'is_sandwich',
+    state: {
+      object: 'Hot Dog',
+      bread: true,
+      bread_type: 'split-top hot dog bun',
+      slices: 1,
+      split_bun: true,
+      filling: 'all-beef frankfurter',
+      condiments: 'dijon mustard and diced pickles',
+      portable: true,
+    },
+  },
+  {
+    id: 'burrito',
+    name: 'Mission-Style Burrito',
+    description: 'Rice, beans, and carnitas completely wrapped in a large flour tortilla.',
+    questionId: 'is_sandwich',
+    state: {
+      object: 'Burrito',
+      wrapper: 'large flour tortilla',
+      bread: false,
+      sliced: false,
+      filling: 'carnitas, black beans, seasoned rice, pico de gallo',
+      form_factor: 'cylindrical roll wrap',
+      portable: true,
+    },
+  },
+  {
+    id: 'bowl-of-soup',
+    name: 'Bowl of Tomato Bisque',
+    description: 'Liquid soup served in a bowl with cracker garnish — non-sandwich counterexample.',
+    questionId: 'is_sandwich',
+    state: {
+      object: 'Tomato Bisque',
+      liquid: true,
+      bread: false,
+      container: 'ceramic bowl',
+      cutlery_needed: 'spoon',
+      filling: 'pureed roasted tomatoes and cream',
+      portable: false,
+    },
+  },
+
+  // Presets for new_score_1 (Score)
+  {
+    id: 'pristine-state',
+    name: 'Pristine Item State',
+    description: 'Exemplary execution with top-tier freshness, optimal temperature, and balanced presentation.',
+    questionId: 'new_score_1',
+    state: {
+      item: 'Freshly Baked Panini',
+      freshness: 0.98,
+      ingredient_tier: 'artisanal organic',
+      temperature_celsius: 65,
+      texture: 'crusty exterior with melted interior',
+      aesthetic_score: 0.95,
+      balance_ratio: 0.92,
+    },
+  },
+  {
+    id: 'average-state',
+    name: 'Average Baseline State',
+    description: 'Standard packaged meal item with acceptable but unremarkable characteristics.',
+    questionId: 'new_score_1',
+    state: {
+      item: 'Commercial Pre-Packaged Wrap',
+      freshness: 0.62,
+      ingredient_tier: 'standard commercial',
+      temperature_celsius: 8,
+      texture: 'slightly soft exterior',
+      aesthetic_score: 0.58,
+      balance_ratio: 0.6,
+    },
+  },
+  {
+    id: 'degraded-state',
+    name: 'Degraded / Deficient State',
+    description: 'Stale item left at room temperature with separated sauces and poor structural integrity.',
+    questionId: 'new_score_1',
+    state: {
+      item: 'Day-Old Counter Leftover',
+      freshness: 0.12,
+      ingredient_tier: 'budget',
+      temperature_celsius: 23,
+      texture: 'soggy bottom with dried top',
+      aesthetic_score: 0.15,
+      balance_ratio: 0.2,
+    },
+  },
+];
+
+export function getPresetsForQuestion(questionId: string): StatePreset[] {
+  return STATE_PRESETS.filter((p) => p.questionId === questionId);
+}
+
+export function getPresetById(presetId: string): StatePreset | undefined {
+  return STATE_PRESETS.find((p) => p.id === presetId);
+}

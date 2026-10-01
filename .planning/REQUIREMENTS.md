@@ -22,10 +22,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Question Registry & Initial Primitives (REG)
 
-- [ ] **REG-01**: Generic typed Question Registry decoupling question definitions from hardcoded switches.
-- [ ] **REG-02**: Initial Noul registered question definition: `is_sandwich` with validation and typed boolean result schema.
-- [ ] **REG-03**: Initial Score registered question definition: `new_score_1` with validation and typed numeric (0-1) result schema.
-- [ ] **REG-04**: Preset state catalog providing example states and question configurations for rapid experimentation.
+- [x] **REG-01**: Generic typed Question Registry decoupling question definitions from hardcoded switches.
+- [x] **REG-02**: Initial Noul registered question definition: `is_sandwich` with validation and typed boolean result schema.
+- [x] **REG-03**: Initial Score registered question definition: `new_score_1` with validation and typed numeric (0-1) result schema.
+- [x] **REG-04**: Preset state catalog providing example states and question configurations for rapid experimentation.
 
 ### Execution Adapters & LLM Practice Engine (ADAPT)
 
@@ -95,10 +95,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | DOMAIN-01 | Phase 1 | Complete |
 | DOMAIN-02 | Phase 1 | Complete |
 | DOMAIN-03 | Phase 1 | Complete |
-| REG-01 | Phase 2 | Pending |
-| REG-02 | Phase 2 | Pending |
-| REG-03 | Phase 2 | Pending |
-| REG-04 | Phase 2 | Pending |
+| REG-01 | Phase 2 | Complete |
+| REG-02 | Phase 2 | Complete |
+| REG-03 | Phase 2 | Complete |
+| REG-04 | Phase 2 | Complete |
 | ADAPT-01 | Phase 3 | Pending |
 | ADAPT-02 | Phase 3 | Pending |
 | ADAPT-03 | Phase 3 | Pending |

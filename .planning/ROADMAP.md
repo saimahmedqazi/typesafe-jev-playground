@@ -50,8 +50,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 02-01: Typed Question Registry engine with state validation and schema resolution
-- [ ] 02-02: Initial question implementations (`is_sandwich`, `new_score_1`) and example state presets
+- [x] 02-01: Typed Question Registry engine with state validation and schema resolution
+- [x] 02-02: Initial question implementations (`is_sandwich`, `new_score_1`) and example state presets
 
 ### Phase 3: Execution Adapters & Multi-Provider LLM Engine
 **Goal**: Implement execution adapter abstraction and multi-provider LLM adapter for OpenAI, Anthropic, and Gemini.
@@ -152,7 +152,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation, Execution Modes & Domain Models | 2/2 | Complete | 2026-10-01 |
-| 2. Question Registry & Initial Primitives | 0/2 | Not started | - |
+| 2. Question Registry & Initial Primitives | 2/2 | Complete | 2026-10-01 |
 | 3. Execution Adapters & Multi-Provider LLM Engine | 0/2 | Not started | - |
 | 4. Server Evaluation Pipeline, Validation & Security | 0/2 | Not started | - |
 | 5. Native Jev Adapter Integration | 0/1 | Not started | - |
