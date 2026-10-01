@@ -12,13 +12,13 @@ import { EvaluationPrompt } from './types';
  */
 export function buildEvaluationPrompt(question: AtomicQuestion, state: unknown): EvaluationPrompt {
   const systemPrompt = [
-    'You are the JEV Semantic Evaluation Engine in LLM Practice Mode.',
-    'Your task is to perform an objective, deterministic evaluation of an atomic question against a provided JSON state representation.',
+    'You are the TypeSafe AI JEV Semantic Evaluation Engine in LLM Practice Mode.',
+    'Your function is to perform deterministic, calibrated, high-precision evaluations of state facts against formal question definitions.',
     '',
-    'Operational Principles:',
-    '1. Practice Mode Fidelity: You simulate JEV evaluation semantics for developers prototyping JEV workflows.',
-    '2. Strict Output Conformity: You must output ONLY structured data matching the requested schema. No conversational filler, no extra text, no markdown backticks outside JSON.',
-    '3. Evidence Grounding: Your judgment or score must be justified solely by the attributes present in the target state.',
+    'Core JEV Evaluation Semantics:',
+    '1. Formal Criteria Adherence: Evaluate strictly against the provided criteria and state facts.',
+    '2. JEV Rationale Discipline: Provide a concise, surgical rationale (1-2 sentences maximum). Be purely objective and formal with zero conversational filler, zero self-dialogue, and zero first-person pronouns.',
+    '3. Strict Output Conformity: Output ONLY valid JSON matching the requested schema.',
   ].join('\n');
 
   const formattedState = JSON.stringify(state, null, 2);
@@ -26,18 +26,18 @@ export function buildEvaluationPrompt(question: AtomicQuestion, state: unknown):
   const primitiveGuidelines =
     question.type === 'noul'
       ? [
-          'Question Primitive: NOUL (Categorical / Truth-Value Judgment)',
-          'Expected Output: A boolean `value` (true or false), a numeric `confidence` score (0.0 to 1.0), and a concise `rationale`.',
+          'Question Primitive: NOUL (Calibrated Truth-Value Probability)',
+          'Expected Output: A boolean `value` (true or false), a calibrated numeric `confidence` score (0.0 to 1.0), and a concise 1-2 sentence `rationale`.',
         ].join('\n')
       : question.type === 'choice'
       ? [
-          'Question Primitive: CHOICE (Categorical Selection from Alternatives)',
+          'Question Primitive: CHOICE (Categorical Classification)',
           `Available Choices: ${(question as any).choices && (question as any).choices.length > 0 ? (question as any).choices.map((c: string) => `"${c}"`).join(', ') : 'None specified'}`,
-          'Expected Output: A string `value` matching one of the available choices, a `probabilities` object mapping each alternative choice to its probability (0.0 to 1.0, summing to ~1.0), a numeric `confidence` score (0.0 to 1.0), and a concise `rationale`.',
+          'Expected Output: A string `value` matching one of the available choices, a `probabilities` object mapping each alternative choice to its calibrated probability (summing to 1.0), a numeric `confidence` score, and a concise 1-2 sentence `rationale`.',
         ].join('\n')
       : [
           'Question Primitive: SCORE (Continuous Normalized Metric)',
-          'Expected Output: A continuous numeric `value` strictly within [0.0, 1.0], an optional `criteria_breakdown` mapping factor names to sub-scores, and a concise `rationale`.',
+          'Expected Output: A continuous numeric `value` strictly within [0.0, 1.0], an optional `criteria_breakdown` mapping factor names to sub-scores, and a concise 1-2 sentence `rationale`.',
         ].join('\n');
 
   const userPrompt = [
@@ -72,16 +72,20 @@ export function buildMultiQuestionEvaluationPrompt(
   state: unknown
 ): EvaluationPrompt {
   const systemPrompt = [
-    'You are the TypeSafe AI JEV Decision Engine in LLM Practice Mode.',
-    'Your task is to evaluate a target state against one or more atomic questions and produce typed, calibrated decisions with probabilities.',
+    'You are the TypeSafe AI JEV Decision Engine (System 1 Neurosymbolic Evaluator).',
+    'Your function is to perform deterministic, calibrated, high-precision evaluations of state facts against formal question definitions.',
     '',
-    'Operational Principles:',
-    '1. Practice Mode Fidelity: You simulate official TypeSafe AI Jev evaluation semantics.',
-    '2. Three Primitives:',
-    '   - noul: Probabilistic boolean judgment. Return float `noul` (probability true between 0.0 and 1.0), boolean `verdict`, and optional `rationale`.',
-    '   - score: Continuous ordered metric. Return float `score` (0.0 to 1.0), `legend` label, and `probabilities` distribution across rubric levels.',
-    '   - choice: Categorical selection. Return string `choice` matching one of the candidate options, `probabilities` distribution across all choices (summing to ~1.0), `confidence` (0.0 to 1.0), and optional `rationale`.',
-    '3. Strict Output Conformity: Output ONLY valid JSON containing an `answers` object mapping each question ID to its answer.',
+    'Core JEV Evaluation Semantics:',
+    '1. Formal Criteria Adherence: Evaluate strictly against the provided criteria and state facts. Resolve variables in backticks (e.g., `food`) directly from the target state.',
+    '2. Three Typed Primitives:',
+    '   - noul: Continuous logit / calibrated probability of truth (0.000 to 1.000). Set `verdict` to true if noul >= 0.5, false otherwise. Output calibrated probabilities (e.g., >= 0.95 or <= 0.05 when decisive).',
+    '   - score: Continuous metric normalized between 0.000 and 1.000. If rubric levels are provided in criteria, assign the best-fitting `legend` and output calibrated `probabilities` across levels summing to 1.0.',
+    '   - choice: Categorical classification. Select the exact option label in `choice`, and assign calibrated `probabilities` across all options summing to 1.0 with overall `confidence`.',
+    '3. JEV Rationale Discipline:',
+    '   - Surgical brevity: Exactly 1 to 2 sentences maximum per question.',
+    '   - Grounded strictly in criteria and state attributes.',
+    '   - Purely objective, formal, and analytical. Zero conversational filler, zero chain-of-thought rambling, zero meta-commentary, zero first-person pronouns ("I", "we", "let\'s").',
+    '4. Output Contract: Return ONLY a valid JSON object matching the requested schema. No conversational preamble or trailing commentary.',
   ].join('\n');
 
   const formattedState = JSON.stringify(state, null, 2);
@@ -93,26 +97,26 @@ export function buildMultiQuestionEvaluationPrompt(
     formattedState,
     '```',
     '',
-    '# QUESTIONS TO EVALUATE',
+    '# QUESTIONS DEFINITIONS',
     '```json',
     formattedQuestions,
     '```',
     '',
     'Evaluate each question in the questions map against the target state according to its instructions and criteria.',
-    'Return your decision as a JSON object with this exact shape:',
+    'Return your evaluation as a JSON object with this exact shape:',
     '```json',
     '{',
     '  "answers": {',
     '    "<question_key>": {',
     '      "type": "noul" | "score" | "choice",',
-    '      "noul": 0.95,',
+    '      "noul": 0.995,',
     '      "verdict": true,',
     '      "score": 0.85,',
     '      "legend": "level_name",',
     '      "choice": "option_name",',
-    '      "probabilities": { ... },',
+    '      "probabilities": { "<option_or_level>": 0.85 },',
     '      "confidence": 0.95,',
-    '      "rationale": "..."',
+    '      "rationale": "Direct, 1-2 sentence formal justification referencing state attributes and criteria."',
     '    }',
     '  }',
     '}',

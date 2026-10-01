@@ -167,9 +167,10 @@ export function Sidebar({
             BY
           </div>
           <div className="truncate">
-            <div className="text-xs font-semibold text-white truncate">Developer</div>
-            <div className="text-[11px] font-mono text-emerald-400">
-              Balance: $0.00 <span className="text-gray-400">(Free)</span>
+            <div className="text-xs font-semibold text-white truncate">Developer Workspace</div>
+            <div className="text-[11px] font-mono text-emerald-400 flex items-center space-x-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>100% Free Practice</span>
             </div>
           </div>
         </div>
