@@ -4,9 +4,95 @@ export interface StatePreset {
   description: string;
   questionId: string;
   state: Record<string, unknown>;
+  questions?: Record<string, any>;
 }
 
 export const STATE_PRESETS: StatePreset[] = [
+  // Official TypeSafe AI Jev Playground Presets
+  {
+    id: 'is-sandwich-official',
+    name: 'Official Jev is_sandwich (Burger)',
+    description: 'Exact setup from TypeSafe AI official playground: Evaluating if a Burger is a sandwich.',
+    questionId: 'is_sandwich',
+    state: {
+      food: 'Burger',
+      definition: 'A burger is a cooked patty served between the two halves of a sliced bread bun, often with toppings such as lettuce, tomato, cheese, and condiments.',
+    },
+    questions: {
+      is_sandwich: {
+        type: 'noul',
+        instructions: 'Is `food` a sandwich?',
+        criteria: {
+          true: 'A sandwich is a kebab closed in bun',
+          false: 'The food has no bread enclosing a filling or uses only a single slice of bread, or uses a non-bread wrapper such as a tortilla, wafer, or cookie.',
+        },
+      },
+    },
+  },
+  {
+    id: 'customer-support-multi',
+    name: 'Customer Support (Choice + Score + Noul)',
+    description: 'Evaluates customer ticket across Choice (routing), Score (frustration), and Noul (urgent escalation).',
+    questionId: 'customer_support',
+    state: {
+      ticket_id: 'TCK-8921',
+      customer: 'Apex Logistics',
+      message: 'The order arrived yesterday but it was broken. I want my money back immediately. This is our third delayed delivery this month.',
+    },
+    questions: {
+      department: {
+        type: 'choice',
+        instructions: 'Which team should handle this ticket?',
+        criteria: {
+          billing: 'Payments, refunds, disputes, invoicing',
+          technical: 'Software bugs, system outages, API issues',
+          shipping: 'Damaged packages, logistics, carrier tracking',
+        },
+      },
+      frustration: {
+        type: 'score',
+        instructions: 'How frustrated is the customer?',
+        criteria: ['Calm', 'Frustrated', 'Very angry'],
+      },
+      is_urgent: {
+        type: 'noul',
+        instructions: 'Does this require prompt attention?',
+      },
+    },
+  },
+  {
+    id: 'food-classifier-multi',
+    name: 'Culinary Classifier (Choice + Score)',
+    description: 'Categorizes culinary item and scores freshness/compositional balance.',
+    questionId: 'classify_food',
+    state: {
+      item: 'Chicken Caesar Wrap',
+      enclosure: 'flour tortilla roll',
+      filling: 'grilled chicken, crisp romaine, parmesan',
+      dressing: 'creamy caesar dressing',
+      temperature: 'chilled',
+      handheld: true,
+    },
+    questions: {
+      category: {
+        type: 'choice',
+        instructions: 'Categorize which culinary category this food item belongs to.',
+        criteria: {
+          sandwich: 'Bread or carb enclosure enclosing filling, handheld',
+          salad: 'Greens and vegetables tossed with dressing',
+          soup: 'Liquid or broth dish served in bowl',
+          pastry: 'Baked dough or confection',
+          entree: 'Main plated dish requiring cutlery',
+        },
+      },
+      quality_score: {
+        type: 'score',
+        instructions: 'Score the overall culinary execution and compositional freshness.',
+        criteria: ['Poor', 'Fair', 'Good', 'Artisanal / Pristine'],
+      },
+    },
+  },
+
   // Presets for is_sandwich (Noul)
   {
     id: 'classic-blt',

@@ -17,12 +17,13 @@ import {
   NoulResult,
   ScoreResult,
   ChoiceResult,
+  JevAnswer,
   UserCredentials,
 } from '../core';
 import { defaultQuestionRegistry } from '../registry';
 import { IQuestionRegistry } from '../registry/types';
 import { ExecutionAdapter, LLMProvider, ProviderExecutionResult, PROVIDER_DEFAULT_MODELS, PROVIDER_ENDPOINTS } from './types';
-import { buildEvaluationPrompt } from './prompt';
+import { buildEvaluationPrompt, buildMultiQuestionEvaluationPrompt } from './prompt';
 import { executeOpenAI } from './providers/openai';
 import { executeAnthropic } from './providers/anthropic';
 import { executeGemini } from './providers/gemini';
@@ -75,47 +76,7 @@ export class LLMExecutionAdapter implements ExecutionAdapter {
         );
       }
 
-      // 3. Resolve Atomic Question from Registry or Dynamic Custom Question
-      let question = this.registry.get(context.questionId);
-      if (!question && (context.questionId === 'custom_question' || context.customQuestionText)) {
-        const primitiveType = context.questionType || 'noul';
-        question = {
-          id: context.questionId || 'custom_question',
-          type: primitiveType,
-          name: 'Custom Evaluation Question',
-          description: context.customQuestionText || 'Custom user-specified atomic question',
-          expectedReturnType: primitiveType === 'noul' ? 'boolean' : primitiveType === 'score' ? 'number' : 'string',
-          promptInstruction: context.customQuestionText || 'Evaluate the target state against the question criteria.',
-          choices: context.choices || [],
-          validateState: (state: unknown) => {
-            if (!state || typeof state !== 'object' || Array.isArray(state)) {
-              return { valid: false, errors: ['State must be a non-null JSON object'] };
-            }
-            return { valid: true };
-          },
-        } as any;
-      }
-
-      if (!question) {
-        throw new JevEvaluationError(
-          EvaluationErrorCode.UNKNOWN_QUESTION,
-          `Atomic question '${context.questionId}' is not registered.`,
-          404
-        );
-      }
-
-      // 4. Validate State against Question
-      const stateValidation = question.validateState(context.state);
-      if (!stateValidation.valid) {
-        throw new JevEvaluationError(
-          EvaluationErrorCode.INVALID_STATE,
-          `State validation failed for question '${question.id}': ${(stateValidation.errors || []).join('; ')}`,
-          400,
-          { errors: stateValidation.errors }
-        );
-      }
-
-      // 5. Resolve Model Configuration
+      // 3. Resolve Model Configuration
       const rawProvider = (context.modelConfig?.provider || 'openai').toLowerCase();
       if (
         rawProvider !== 'openai' &&
@@ -137,10 +98,175 @@ export class LLMExecutionAdapter implements ExecutionAdapter {
         (credentials && 'endpoint' in credentials && credentials.endpoint) ||
         context.modelConfig?.customEndpoint;
 
-      // 6. Build JEV Evaluation Prompt
+      // 4. Check for Official TypeSafe AI Questions Map
+      if (context.questions && Object.keys(context.questions).length > 0) {
+        const prompt = buildMultiQuestionEvaluationPrompt(context.questions, context.state);
+
+        const syntheticQuestion: any = {
+          id: 'multi_eval',
+          type: 'choice',
+          name: 'Multi-Question Evaluation',
+          description: 'Official TypeSafe AI questions evaluation',
+          expectedReturnType: 'string',
+          promptInstruction: '',
+          validateState: () => ({ valid: true }),
+        };
+
+        const executionResult = await this.dispatchProvider({
+          provider,
+          apiKey,
+          model,
+          temperature,
+          question: syntheticQuestion,
+          prompt,
+          customEndpoint,
+        });
+
+        const raw = executionResult.rawResult as Record<string, any>;
+        const rawAnswers = (raw && typeof raw === 'object' && raw.answers) ? raw.answers : raw;
+
+        const normalizedAnswers: Record<string, JevAnswer> = {};
+        for (const [key, qDef] of Object.entries(context.questions)) {
+          const rawAns = rawAnswers?.[key] || {};
+          const qType = qDef.type || 'noul';
+
+          if (qType === 'noul') {
+            const prob = typeof rawAns.noul === 'number'
+              ? rawAns.noul
+              : typeof rawAns.value === 'boolean'
+              ? (rawAns.value ? 0.98 : 0.02)
+              : typeof rawAns.confidence === 'number'
+              ? rawAns.confidence
+              : 0.5;
+            const verdict = typeof rawAns.verdict === 'boolean' ? rawAns.verdict : prob >= 0.5;
+            normalizedAnswers[key] = {
+              type: 'noul',
+              noul: Math.max(0, Math.min(1, prob)),
+              verdict,
+              confidence: typeof rawAns.confidence === 'number' ? rawAns.confidence : prob,
+              rationale: rawAns.rationale || rawAns.explanation,
+            };
+          } else if (qType === 'score') {
+            const scoreVal = typeof rawAns.score === 'number'
+              ? rawAns.score
+              : typeof rawAns.value === 'number'
+              ? rawAns.value
+              : 0.5;
+            normalizedAnswers[key] = {
+              type: 'score',
+              score: Math.max(0, Math.min(1, scoreVal)),
+              legend: rawAns.legend || (typeof rawAns.value === 'string' ? rawAns.value : undefined),
+              probabilities: rawAns.probabilities,
+              confidence: rawAns.confidence,
+              rationale: rawAns.rationale || rawAns.explanation,
+            };
+          } else if (qType === 'choice') {
+            const choiceVal = typeof rawAns.choice === 'string'
+              ? rawAns.choice
+              : typeof rawAns.value === 'string'
+              ? rawAns.value
+              : String(rawAns.choice ?? rawAns.value ?? '');
+            normalizedAnswers[key] = {
+              type: 'choice',
+              choice: choiceVal,
+              probabilities: rawAns.probabilities,
+              confidence: rawAns.confidence,
+              rationale: rawAns.rationale || rawAns.explanation,
+            };
+          }
+        }
+
+        const durationMs = Date.now() - startTime;
+        const firstKey = Object.keys(normalizedAnswers)[0] || 'evaluation';
+        const firstAns = normalizedAnswers[firstKey];
+        let primaryResult: JevResult;
+        if (!firstAns || firstAns.type === 'noul') {
+          primaryResult = {
+            type: 'noul',
+            value: firstAns ? (firstAns.verdict ?? (firstAns.noul >= 0.5)) : false,
+            confidence: firstAns?.confidence ?? 0.95,
+            explanation: firstAns?.rationale || 'Evaluation completed successfully.',
+          };
+        } else if (firstAns.type === 'score') {
+          primaryResult = {
+            type: 'score',
+            value: firstAns.score,
+            range: [0, 1],
+            confidence: firstAns.confidence ?? 0.95,
+            explanation: firstAns.rationale || 'Evaluation completed successfully.',
+          };
+        } else {
+          primaryResult = {
+            type: 'choice',
+            value: firstAns.choice || '',
+            choices: firstAns.probabilities ? Object.keys(firstAns.probabilities) : [firstAns.choice || 'default'],
+            probabilities: firstAns.probabilities,
+            confidence: firstAns.confidence ?? 0.95,
+            explanation: firstAns.rationale || 'Evaluation completed successfully.',
+          };
+        }
+
+        return {
+          success: true,
+          result: primaryResult,
+          answers: normalizedAnswers,
+          metadata: {
+            durationMs,
+            requestId: `eval_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            mode: 'llm-practice',
+            provider,
+            model,
+            tokenUsage: executionResult.tokenUsage,
+            timestamp: new Date().toISOString(),
+          },
+        };
+      }
+
+      // 5. Fallback Single Question Resolution from Registry or Dynamic Custom Question
+      const qId = context.questionId || 'is_sandwich';
+      let question = this.registry.get(qId);
+      if (!question && (qId === 'custom_question' || context.customQuestionText)) {
+        const primitiveType = context.questionType || 'noul';
+        question = {
+          id: qId,
+          type: primitiveType,
+          name: 'Custom Evaluation Question',
+          description: context.customQuestionText || 'Custom user-specified atomic question',
+          expectedReturnType: primitiveType === 'noul' ? 'boolean' : primitiveType === 'score' ? 'number' : 'string',
+          promptInstruction: context.customQuestionText || 'Evaluate the target state against the question criteria.',
+          choices: context.choices || [],
+          validateState: (state: unknown) => {
+            if (!state || typeof state !== 'object' || Array.isArray(state)) {
+              return { valid: false, errors: ['State must be a non-null JSON object'] };
+            }
+            return { valid: true };
+          },
+        } as any;
+      }
+
+      if (!question) {
+        throw new JevEvaluationError(
+          EvaluationErrorCode.UNKNOWN_QUESTION,
+          `Atomic question '${qId}' is not registered.`,
+          404
+        );
+      }
+
+      // 6. Validate State against Question
+      const stateValidation = question.validateState(context.state);
+      if (!stateValidation.valid) {
+        throw new JevEvaluationError(
+          EvaluationErrorCode.INVALID_STATE,
+          `State validation failed for question '${question.id}': ${(stateValidation.errors || []).join('; ')}`,
+          400,
+          { errors: stateValidation.errors }
+        );
+      }
+
+      // 7. Build JEV Evaluation Prompt
       const prompt = buildEvaluationPrompt(question, context.state);
 
-      // 7. Dispatch to Provider Sub-Adapter
+      // 8. Dispatch to Provider Sub-Adapter
       const executionResult = await this.dispatchProvider({
         provider,
         apiKey,
@@ -151,7 +277,7 @@ export class LLMExecutionAdapter implements ExecutionAdapter {
         customEndpoint,
       });
 
-      // 8. Normalize Output to JEV Typed Result
+      // 9. Normalize Output to JEV Typed Result
       const result = this.normalizeResult(question, executionResult.rawResult);
       const durationMs = Date.now() - startTime;
 

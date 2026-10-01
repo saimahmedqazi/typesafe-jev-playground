@@ -63,3 +63,64 @@ export function buildEvaluationPrompt(question: AtomicQuestion, state: unknown):
     userPrompt,
   };
 }
+
+/**
+ * Builds system and user prompts for evaluating an official TypeSafe AI questions map against target state.
+ */
+export function buildMultiQuestionEvaluationPrompt(
+  questions: Record<string, any>,
+  state: unknown
+): EvaluationPrompt {
+  const systemPrompt = [
+    'You are the TypeSafe AI JEV Decision Engine in LLM Practice Mode.',
+    'Your task is to evaluate a target state against one or more atomic questions and produce typed, calibrated decisions with probabilities.',
+    '',
+    'Operational Principles:',
+    '1. Practice Mode Fidelity: You simulate official TypeSafe AI Jev evaluation semantics.',
+    '2. Three Primitives:',
+    '   - noul: Probabilistic boolean judgment. Return float `noul` (probability true between 0.0 and 1.0), boolean `verdict`, and optional `rationale`.',
+    '   - score: Continuous ordered metric. Return float `score` (0.0 to 1.0), `legend` label, and `probabilities` distribution across rubric levels.',
+    '   - choice: Categorical selection. Return string `choice` matching one of the candidate options, `probabilities` distribution across all choices (summing to ~1.0), `confidence` (0.0 to 1.0), and optional `rationale`.',
+    '3. Strict Output Conformity: Output ONLY valid JSON containing an `answers` object mapping each question ID to its answer.',
+  ].join('\n');
+
+  const formattedState = JSON.stringify(state, null, 2);
+  const formattedQuestions = JSON.stringify(questions, null, 2);
+
+  const userPrompt = [
+    '# TARGET STATE',
+    '```json',
+    formattedState,
+    '```',
+    '',
+    '# QUESTIONS TO EVALUATE',
+    '```json',
+    formattedQuestions,
+    '```',
+    '',
+    'Evaluate each question in the questions map against the target state according to its instructions and criteria.',
+    'Return your decision as a JSON object with this exact shape:',
+    '```json',
+    '{',
+    '  "answers": {',
+    '    "<question_key>": {',
+    '      "type": "noul" | "score" | "choice",',
+    '      "noul": 0.95,',
+    '      "verdict": true,',
+    '      "score": 0.85,',
+    '      "legend": "level_name",',
+    '      "choice": "option_name",',
+    '      "probabilities": { ... },',
+    '      "confidence": 0.95,',
+    '      "rationale": "..."',
+    '    }',
+    '  }',
+    '}',
+    '```',
+  ].join('\n');
+
+  return {
+    systemPrompt,
+    userPrompt,
+  };
+}

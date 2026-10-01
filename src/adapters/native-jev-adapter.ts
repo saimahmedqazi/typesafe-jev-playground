@@ -78,11 +78,19 @@ export class NativeJevExecutionAdapter implements ExecutionAdapter {
       }
 
       // 3. Resolve Atomic Question
-      const question = this.registry.get(context.questionId);
+      const resolvedQId = context.questionId || (context.questions ? Object.keys(context.questions)[0] : undefined);
+      if (!resolvedQId) {
+        throw new JevEvaluationError(
+          EvaluationErrorCode.UNKNOWN_QUESTION,
+          'No atomic question specified for evaluation.',
+          400
+        );
+      }
+      const question = this.registry.get(resolvedQId);
       if (!question) {
         throw new JevEvaluationError(
           EvaluationErrorCode.UNKNOWN_QUESTION,
-          `Atomic question '${context.questionId}' is not registered.`,
+          `Atomic question '${resolvedQId}' is not registered.`,
           404
         );
       }

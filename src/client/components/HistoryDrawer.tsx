@@ -124,46 +124,54 @@ export function HistoryDrawer({
 
                   {/* Result Summary */}
                   <div className="flex items-center justify-between p-2 rounded-lg bg-[#090d16] border border-gray-850">
-                    {record.result.type === 'noul' ? (
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`text-xs font-mono font-bold flex items-center space-x-1 ${
-                            record.result.value ? 'text-emerald-400' : 'text-rose-400'
-                          }`}
-                        >
-                          {record.result.value ? (
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                          ) : (
-                            <XCircle className="w-3.5 h-3.5" />
+                    {record.result ? (
+                      record.result.type === 'noul' ? (
+                        <div className="flex items-center space-x-2">
+                          <span
+                            className={`text-xs font-mono font-bold flex items-center space-x-1 ${
+                              record.result.value ? 'text-emerald-400' : 'text-rose-400'
+                            }`}
+                          >
+                            {record.result.value ? (
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            ) : (
+                              <XCircle className="w-3.5 h-3.5" />
+                            )}
+                            <span>{record.result.value ? 'TRUE' : 'FALSE'}</span>
+                          </span>
+                          {record.result.confidence !== undefined && (
+                            <span className="text-[10px] text-gray-400 font-mono">
+                              ({(record.result.confidence * 100).toFixed(0)}%)
+                            </span>
                           )}
-                          <span>{record.result.value ? 'TRUE' : 'FALSE'}</span>
-                        </span>
-                        {record.result.confidence !== undefined && (
-                          <span className="text-[10px] text-gray-400 font-mono">
-                            ({(record.result.confidence * 100).toFixed(0)}%)
+                        </div>
+                      ) : record.result.type === 'choice' ? (
+                        <div className="flex items-center space-x-1.5">
+                          <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                            {record.result.value}
                           </span>
-                        )}
-                      </div>
-                    ) : record.result.type === 'choice' ? (
-                      <div className="flex items-center space-x-1.5">
-                        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
-                          {record.result.value}
-                        </span>
-                        {record.result.confidence !== undefined && (
-                          <span className="text-[10px] text-gray-400 font-mono">
-                            ({(record.result.confidence * 100).toFixed(0)}%)
+                          {record.result.confidence !== undefined && (
+                            <span className="text-[10px] text-gray-400 font-mono">
+                              ({(record.result.confidence * 100).toFixed(0)}%)
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-baseline space-x-1.5 font-mono">
+                          <span className="text-sm font-bold text-white">
+                            {typeof (record.result as any).value === 'number'
+                              ? (record.result as any).value.toFixed(3)
+                              : String((record.result as any).value)}
                           </span>
-                        )}
+                          <span className="text-[10px] text-gray-400">/ 1.000</span>
+                        </div>
+                      )
+                    ) : record.answers ? (
+                      <div className="text-xs font-mono text-blue-400">
+                        {Object.keys(record.answers).length} questions evaluated
                       </div>
                     ) : (
-                      <div className="flex items-baseline space-x-1.5 font-mono">
-                        <span className="text-sm font-bold text-white">
-                          {typeof (record.result as any).value === 'number'
-                            ? (record.result as any).value.toFixed(3)
-                            : String((record.result as any).value)}
-                        </span>
-                        <span className="text-[10px] text-gray-400">/ 1.000</span>
-                      </div>
+                      <div className="text-xs text-gray-400">Completed</div>
                     )}
 
                     <div className="flex items-center space-x-3 text-[10px] font-mono text-gray-400">

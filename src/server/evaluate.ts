@@ -7,7 +7,7 @@
  */
 
 import { Request, Response } from 'express';
-import { EvaluationContext, EvaluationErrorCode, JevEvaluationError } from '../core';
+import { EvaluationContext, EvaluationErrorCode, JevEvaluationError, QuestionsMap } from '../core';
 import { defaultQuestionRegistry } from '../registry';
 import { STATE_PRESETS } from '../registry/presets';
 import { LLMExecutionAdapter, NativeJevExecutionAdapter, SUPPORTED_MODELS, LLMProvider } from '../adapters';
@@ -36,7 +36,7 @@ export function createEvaluationHandlers(options?: {
       });
     }
 
-    const { mode, questionId, questionType, state, modelConfig, choices, customQuestionText } = parseResult.data;
+    const { mode, questions, questionId, questionType, state, modelConfig, choices, customQuestionText } = parseResult.data;
 
     // 2. Extract Ephemeral User Credentials
     const userCredentials = extractEphemeralCredentials(req.headers);
@@ -68,12 +68,27 @@ export function createEvaluationHandlers(options?: {
       }
     }
 
-    // 4. Resolve Question from Registry or Dynamic Custom Question
-    let question = defaultQuestionRegistry.get(questionId);
-    if (!question && (questionId === 'custom_question' || customQuestionText)) {
+    // 4. Multi-Question Map Flow (Official TypeSafe AI Schema)
+    if (questions && Object.keys(questions).length > 0) {
+      const context: EvaluationContext = {
+        mode,
+        questions: questions as QuestionsMap,
+        state,
+        modelConfig,
+      };
+
+      const response = await llmAdapter.execute(context, userCredentials);
+      const statusCode = response.success ? 200 : (response.error?.statusCode || 400);
+      return res.status(statusCode).json(response);
+    }
+
+    // 5. Single Question Flow (Backward Compatibility)
+    const effectiveQId = questionId || 'is_sandwich';
+    let question = defaultQuestionRegistry.get(effectiveQId);
+    if (!question && (effectiveQId === 'custom_question' || customQuestionText)) {
       const primitiveType = questionType || 'noul';
       question = {
-        id: questionId || 'custom_question',
+        id: effectiveQId,
         type: primitiveType,
         name: 'Custom Evaluation Question',
         description: customQuestionText || 'Custom user question',
@@ -89,30 +104,30 @@ export function createEvaluationHandlers(options?: {
         success: false,
         error: {
           code: EvaluationErrorCode.UNKNOWN_QUESTION,
-          message: `Atomic question '${questionId}' was not found in the question registry.`,
+          message: `Atomic question '${effectiveQId}' was not found in the question registry.`,
           statusCode: 404,
         },
       });
     }
 
-    // 5. Construct Evaluation Context
+    // 6. Construct Evaluation Context
     const context: EvaluationContext = {
       mode,
-      questionId,
-      questionType,
+      questionId: effectiveQId,
+      questionType: question.type,
       state,
       modelConfig,
       choices,
       customQuestionText,
     };
 
-    // 6. Execute Evaluation Adapter
+    // 7. Execute Evaluation Adapter
     const response = mode === 'native-jev'
       ? await nativeAdapter.execute(context, userCredentials)
       : await llmAdapter.execute(context, userCredentials);
 
-    // 7. Validate Evaluation Result Schema if Success
-    if (response.success) {
+    // 8. Validate Evaluation Result Schema if Success
+    if (response.success && response.result) {
       try {
         validateEvaluationResult(question, response.result);
       } catch (err) {
@@ -131,12 +146,9 @@ export function createEvaluationHandlers(options?: {
           },
         });
       }
-
-      return res.status(200).json(response);
     }
 
-    // 8. Return Normalized Error Response
-    const statusCode = response.error?.statusCode || 400;
+    const statusCode = response.success ? 200 : (response.error?.statusCode || 400);
     return res.status(statusCode).json(response);
   }
 

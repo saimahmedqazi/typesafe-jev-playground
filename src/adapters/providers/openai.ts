@@ -84,7 +84,7 @@ export async function executeOpenAI(params: OpenAIExecutionParams): Promise<Prov
     temperature,
   };
 
-  const MAX_RETRIES = 2;
+  const MAX_RETRIES = 3;
   let lastResponse: Response | null = null;
   let lastError: Error | null = null;
 
@@ -103,14 +103,24 @@ export async function executeOpenAI(params: OpenAIExecutionParams): Promise<Prov
 
       // Handle transient rate limits (429) or temporary server unavailable (503)
       if ((response.status === 429 || response.status === 503) && attempt < MAX_RETRIES) {
-        let delayMs = attempt === 0 ? 600 : 1200;
+        let delayMs = attempt === 0 ? 1200 : attempt === 1 ? 2500 : 4000;
         const retryAfterHeader = response.headers.get('retry-after');
+        const resetTokensHeader = response.headers.get('x-ratelimit-reset-tokens');
+        const resetRequestsHeader = response.headers.get('x-ratelimit-reset-requests');
+
+        let waitSec = 0;
         if (retryAfterHeader) {
-          const parsedSeconds = parseFloat(retryAfterHeader);
-          if (!isNaN(parsedSeconds) && parsedSeconds > 0) {
-            delayMs = Math.min(Math.round(parsedSeconds * 1000), 3000);
-          }
+          waitSec = parseFloat(retryAfterHeader);
+        } else if (resetTokensHeader) {
+          waitSec = parseFloat(resetTokensHeader.replace(/[^\d.]/g, ''));
+        } else if (resetRequestsHeader) {
+          waitSec = parseFloat(resetRequestsHeader.replace(/[^\d.]/g, ''));
         }
+
+        if (!isNaN(waitSec) && waitSec > 0) {
+          delayMs = Math.min(Math.round(waitSec * 1000) + 300, 6000);
+        }
+
         await new Promise((resolve) => setTimeout(resolve, delayMs));
         continue;
       }
@@ -157,9 +167,11 @@ export async function executeOpenAI(params: OpenAIExecutionParams): Promise<Prov
     }
 
     if (response.status === 429) {
+      const resetTokens = response.headers.get('x-ratelimit-reset-tokens');
+      const waitHint = resetTokens ? ` (resets in ${resetTokens})` : '';
       throw new JevEvaluationError(
         EvaluationErrorCode.RATE_LIMITED,
-        `${providerName} rate limit or usage quota exceeded. Please wait a moment before evaluating.`,
+        `${providerName} rate limit or usage quota exceeded${waitHint}. Please wait a moment before evaluating.`,
         429
       );
     }

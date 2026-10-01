@@ -20,6 +20,61 @@ export type State = Record<string, unknown>;
 export type QuestionPrimitiveType = 'noul' | 'score' | 'choice';
 
 /**
+ * Official TypeSafe AI Jev Question Schema
+ */
+export interface NoulQuestionInput {
+  type: 'noul';
+  instructions: string;
+  criteria?: {
+    true?: string;
+    false?: string;
+    [key: string]: string | undefined;
+  };
+}
+
+export interface ScoreQuestionInput {
+  type: 'score';
+  instructions: string;
+  criteria?: string[] | Record<string, string>;
+}
+
+export interface ChoiceQuestionInput {
+  type: 'choice';
+  instructions: string;
+  criteria?: Record<string, string> | string[];
+}
+
+export type QuestionInput = NoulQuestionInput | ScoreQuestionInput | ChoiceQuestionInput;
+export type QuestionsMap = Record<string, QuestionInput>;
+
+export interface NoulAnswer {
+  type: 'noul';
+  noul: number; // float probability [0.0, 1.0]
+  verdict?: boolean;
+  confidence?: number;
+  rationale?: string;
+}
+
+export interface ScoreAnswer {
+  type: 'score';
+  score: number; // float [0.0, 1.0]
+  legend?: string;
+  probabilities?: Record<string, number>;
+  confidence?: number;
+  rationale?: string;
+}
+
+export interface ChoiceAnswer {
+  type: 'choice';
+  choice: string;
+  probabilities?: Record<string, number>;
+  confidence?: number;
+  rationale?: string;
+}
+
+export type JevAnswer = NoulAnswer | ScoreAnswer | ChoiceAnswer;
+
+/**
  * Noul Result: Represents a categorical or truth-value judgment (boolean).
  */
 export interface NoulResult {
@@ -117,9 +172,10 @@ export interface ModelConfig {
  */
 export interface EvaluationContext {
   mode: ExecutionMode;
-  questionId: string;
-  questionType: QuestionPrimitiveType;
+  questionId?: string;
+  questionType?: QuestionPrimitiveType;
   state: State;
+  questions?: QuestionsMap;
   modelConfig?: ModelConfig;
   choices?: string[];
   customQuestionText?: string;
@@ -150,6 +206,7 @@ export type EvaluationResponse =
   | {
       success: true;
       result: JevResult;
+      answers?: Record<string, JevAnswer>;
       metadata: EvaluationMetadata;
     }
   | {

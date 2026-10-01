@@ -14,9 +14,10 @@ export interface ExperimentRecord {
   id: string;
   timestamp: string;
   mode: ExecutionMode;
-  questionId: string;
-  questionName: string;
-  questionType: QuestionPrimitiveType;
+  questionId?: string;
+  questionName?: string;
+  questionType?: QuestionPrimitiveType;
+  questions?: Record<string, any>;
   state: Record<string, unknown>;
   modelConfig?: {
     provider: string;
@@ -24,6 +25,7 @@ export interface ExperimentRecord {
     temperature?: number;
   };
   result: JevResult;
+  answers?: Record<string, any>;
   metadata: {
     durationMs: number;
     requestId: string;

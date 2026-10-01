@@ -8,19 +8,24 @@
 import { z } from 'zod';
 import { AtomicQuestion, EvaluationErrorCode, JevEvaluationError, JevResult } from '../core';
 
+export const QuestionInputSchema = z.object({
+  type: z.enum(['noul', 'score', 'choice']),
+  instructions: z.string(),
+  criteria: z.union([z.record(z.string()), z.array(z.string())]).optional(),
+});
+
 export const EvaluateRequestBodySchema = z.object({
   mode: z.enum(['llm-practice', 'native-jev'], {
     errorMap: () => ({ message: "Mode must be either 'llm-practice' or 'native-jev'" }),
-  }),
-  questionId: z.string().min(1, 'Question ID cannot be empty'),
-  questionType: z.enum(['noul', 'score', 'choice'], {
-    errorMap: () => ({ message: "Question type must be 'noul', 'score', or 'choice'" }),
   }),
   state: z
     .record(z.unknown())
     .refine((val) => val !== null && typeof val === 'object' && !Array.isArray(val), {
       message: 'State must be a non-null, non-array JSON object',
     }),
+  questions: z.record(QuestionInputSchema).optional(),
+  questionId: z.string().optional(),
+  questionType: z.enum(['noul', 'score', 'choice']).optional(),
   choices: z.array(z.string()).optional(),
   customQuestionText: z.string().optional(),
   modelConfig: z
@@ -31,7 +36,10 @@ export const EvaluateRequestBodySchema = z.object({
       customEndpoint: z.string().url().optional(),
     })
     .optional(),
-});
+}).refine(
+  (data) => Boolean((data.questions && Object.keys(data.questions).length > 0) || data.questionId || data.customQuestionText),
+  { message: "Either 'questions' map or 'questionId' must be provided." }
+);
 
 export type EvaluateRequestBody = z.infer<typeof EvaluateRequestBodySchema>;
 
