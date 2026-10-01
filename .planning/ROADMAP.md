@@ -10,7 +10,7 @@ TypeSafe Jev Playground is an evaluation workbench for JEV logic enabling develo
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Foundation, Execution Modes & Domain Models** - Establish TypeScript project, core domain types, execution mode abstraction, and ephemeral credential isolation.
+- [x] **Phase 1: Foundation, Execution Modes & Domain Models** - Establish TypeScript project, core domain types, execution mode abstraction, and ephemeral credential isolation.
 - [ ] **Phase 2: Question Registry & Initial Primitives** - Implement typed question registry, `is_sandwich` (Noul), and `new_score_1` (Score) definitions with state presets.
 - [ ] **Phase 3: Execution Adapters & Multi-Provider LLM Engine** - Decoupled adapter layer supporting OpenAI, Anthropic, and Gemini with structured outputs.
 - [ ] **Phase 4: Server Evaluation Pipeline, Validation & Security** - Robust `/api/evaluate` endpoint with Zod validation, rate limiting, and structured error responses.
@@ -34,8 +34,8 @@ TypeSafe Jev Playground is an evaluation workbench for JEV logic enabling develo
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Project scaffolding, monorepo/package layout, build configuration, and base typing setup
-- [ ] 01-02: Core JEV domain types, execution mode models, and ephemeral credential isolation contracts
+- [x] 01-01: Project scaffolding, monorepo/package layout, build configuration, and base typing setup
+- [x] 01-02: Core JEV domain types, execution mode models, and ephemeral credential isolation contracts
 
 ### Phase 2: Question Registry & Initial Primitives
 **Goal**: Implement typed question registry and register `is_sandwich` (Noul) and `new_score_1` (Score) with state validation and presets.
@@ -151,7 +151,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation, Execution Modes & Domain Models | 0/2 | Not started | - |
+| 1. Foundation, Execution Modes & Domain Models | 2/2 | Complete | 2026-10-01 |
 | 2. Question Registry & Initial Primitives | 0/2 | Not started | - |
 | 3. Execution Adapters & Multi-Provider LLM Engine | 0/2 | Not started | - |
 | 4. Server Evaluation Pipeline, Validation & Security | 0/2 | Not started | - |

@@ -9,16 +9,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Core Execution Modes & Security (EXEC)
 
-- [ ] **EXEC-01**: Explicit Execution Mode abstraction distinguishing LLM Practice Mode and Native Jev Mode with clear semantic boundaries.
-- [ ] **EXEC-02**: BYO Key architecture with ephemeral client-side credential handling (memory only, never persisted to disk/DB, sent via headers).
-- [ ] **EXEC-03**: Zero hidden cost fallback (maintainer credentials are never used as fallback for public/user requests).
+- [x] **EXEC-01**: Explicit Execution Mode abstraction distinguishing LLM Practice Mode and Native Jev Mode with clear semantic boundaries.
+- [x] **EXEC-02**: BYO Key architecture with ephemeral client-side credential handling (memory only, never persisted to disk/DB, sent via headers).
+- [x] **EXEC-03**: Zero hidden cost fallback (maintainer credentials are never used as fallback for public/user requests).
 - [ ] **EXEC-04**: Rate limiting, request size limits, and fixed provider endpoint allowlisting to prevent abuse and SSRF.
 
 ### JEV Domain Model & Primitives (DOMAIN)
 
-- [ ] **DOMAIN-01**: Strongly typed Atomic Question interfaces (`NoulQuestion`, `ScoreQuestion`, extensible to future primitives).
-- [ ] **DOMAIN-02**: Strongly typed State representation and Evaluation Context models.
-- [ ] **DOMAIN-03**: Discriminated union typed evaluation results and structured metadata.
+- [x] **DOMAIN-01**: Strongly typed Atomic Question interfaces (`NoulQuestion`, `ScoreQuestion`, extensible to future primitives).
+- [x] **DOMAIN-02**: Strongly typed State representation and Evaluation Context models.
+- [x] **DOMAIN-03**: Discriminated union typed evaluation results and structured metadata.
 
 ### Question Registry & Initial Primitives (REG)
 
@@ -88,13 +88,13 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EXEC-01 | Phase 1 | Pending |
-| EXEC-02 | Phase 1 | Pending |
-| EXEC-03 | Phase 1 | Pending |
+| EXEC-01 | Phase 1 | Complete |
+| EXEC-02 | Phase 1 | Complete |
+| EXEC-03 | Phase 1 | Complete |
 | EXEC-04 | Phase 4 | Pending |
-| DOMAIN-01 | Phase 1 | Pending |
-| DOMAIN-02 | Phase 1 | Pending |
-| DOMAIN-03 | Phase 1 | Pending |
+| DOMAIN-01 | Phase 1 | Complete |
+| DOMAIN-02 | Phase 1 | Complete |
+| DOMAIN-03 | Phase 1 | Complete |
 | REG-01 | Phase 2 | Pending |
 | REG-02 | Phase 2 | Pending |
 | REG-03 | Phase 2 | Pending |
