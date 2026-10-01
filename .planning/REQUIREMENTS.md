@@ -42,11 +42,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Workbench Frontend & State Workspace (UI)
 
-- [ ] **UI-01**: Professional 3-column responsive developer workbench layout (Configuration, Workspace, Result Inspector).
-- [ ] **UI-02**: Execution mode selector (LLM Practice vs Native Jev) with dynamic provider/model/credential configuration.
-- [ ] **UI-03**: Interactive JSON State Editor with syntax validation, formatting, reset, and preset loaders.
-- [ ] **UI-04**: Question selection workspace with question details, expected return types, and run controls.
-- [ ] **UI-05**: Result Inspector displaying typed result, duration, model metadata, and sanitized execution trace.
+- [x] **UI-01**: Professional 3-column responsive developer workbench layout (Configuration, Workspace, Result Inspector).
+- [x] **UI-02**: Execution mode selector (LLM Practice vs Native Jev) with dynamic provider/model/credential configuration.
+- [x] **UI-03**: Interactive JSON State Editor with syntax validation, formatting, reset, and preset loaders.
+- [x] **UI-04**: Question selection workspace with question details, expected return types, and run controls.
+- [x] **UI-05**: Result Inspector displaying typed result, duration, model metadata, and sanitized execution trace.
 
 ### Experimentation History & UX (HIST)
 
@@ -106,11 +106,11 @@ Which phases cover which requirements. Populated during roadmap creation.
 | API-01 | Phase 4 | Complete |
 | API-02 | Phase 4 | Complete |
 | API-03 | Phase 4 | Complete |
-| UI-01 | Phase 6 | Pending |
-| UI-02 | Phase 6 | Pending |
-| UI-03 | Phase 6 | Pending |
-| UI-04 | Phase 6 | Pending |
-| UI-05 | Phase 6 | Pending |
+| UI-01 | Phase 6 | Complete |
+| UI-02 | Phase 6 | Complete |
+| UI-03 | Phase 6 | Complete |
+| UI-04 | Phase 6 | Complete |
+| UI-05 | Phase 6 | Complete |
 | HIST-01 | Phase 7 | Pending |
 | HIST-02 | Phase 7 | Pending |
 | TEST-01 | Phase 8 | Pending |

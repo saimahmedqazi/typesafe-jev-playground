@@ -111,9 +111,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 06-01: Layout shell, theme/dark mode, configuration panel, and ephemeral credential state store
-- [ ] 06-02: Interactive JSON State Editor with validation, formatting, and preset loader
-- [ ] 06-03: Question runner, evaluation controls, Result Inspector, and execution trace viewer
+- [x] 06-01: Layout shell, theme/dark mode, configuration panel, and ephemeral credential state store
+- [x] 06-02: Interactive JSON State Editor with validation, formatting, and preset loader
+- [x] 06-03: Question runner, evaluation controls, Result Inspector, and execution trace viewer
 
 ### Phase 7: Local Experiment History & Workflow Polish
 **Goal**: Implement browser-local experiment history, rapid iterative re-run workflow, and security verification on stored history.
@@ -156,6 +156,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 3. Execution Adapters & Multi-Provider LLM Engine | 2/2 | Complete | 2026-10-01 |
 | 4. Server Evaluation Pipeline, Validation & Security | 2/2 | Complete | 2026-10-01 |
 | 5. Native Jev Adapter Integration | 1/1 | Complete | 2026-10-01 |
-| 6. Developer Workbench UI & State Editor | 0/3 | Not started | - |
+| 6. Developer Workbench UI & State Editor | 3/3 | Complete | 2026-10-01 |
 | 7. Local Experiment History & Workflow Polish | 0/1 | Not started | - |
 | 8. Comprehensive Verification & Security Testing | 0/2 | Not started | - |
