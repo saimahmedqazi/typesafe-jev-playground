@@ -4,7 +4,6 @@
   "model_profile": "adaptive",
   "commit_docs": true,
   "parallelization": false,
-  "branching_strategy": "none",
   "workflow": {
     "research": true,
     "plan_check": true,
@@ -31,5 +30,8 @@
   "graphify": {
     "enabled": false,
     "auto_update": false
+  },
+  "git": {
+    "branching_strategy": "none"
   }
 }
