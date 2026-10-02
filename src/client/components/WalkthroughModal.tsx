@@ -74,7 +74,7 @@ export function WalkthroughModal({ isOpen, onClose, onOpenSettings }: Walkthroug
               <span>1. What is JEV?</span>
             </div>
             <p className="text-xs text-gray-300 leading-relaxed">
-              JEV (Joint Evaluation Vector) is an evaluation framework where arbitrary structured state is evaluated against focused <strong>Atomic Questions</strong> to produce strictly typed results:
+              JEV is an evaluation framework where arbitrary structured state is evaluated against focused <strong>Atomic Questions</strong> to produce strictly typed results:
             </p>
             <div className="grid grid-cols-2 gap-3 pt-1">
               <div className="p-3 rounded-lg bg-gray-950/80 border border-gray-800 space-y-1">
